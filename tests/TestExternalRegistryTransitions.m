@@ -1,6 +1,10 @@
 classdef TestExternalRegistryTransitions < matlab.unittest.TestCase
     methods (Test)
         function fullManifestAllowsTwoRegistryTransitionsAndRejectsUnapprovedRewrite(t)
+            % Нужны PowerShell и фикстура супервизора (в поставке v4 её нет) — иначе пропуск.
+            fixtureScript=fullfile(fileparts(mfilename('fullpath')),'fixtures', ...
+                'InvokeBoundedProcess-registry-transition-fixture.ps1');
+            t.assumeTrue(ispc && isfile(fixtureScript),'Requires Windows PowerShell and its supervisor fixture.');
             sourceRoot=fileparts(fileparts(mfilename('fullpath')));
             fixtureRoot=fullfile(tempdir,['nbiot-registry-transitions-' ...
                 char(java.util.UUID.randomUUID())]);

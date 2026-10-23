@@ -213,6 +213,9 @@ classdef TestNBIoTAppDialogs < matlab.unittest.TestCase
                 t.verifyEqual(savedAxes.Layout.Row,1, ...
                     'The axes belongs in row 1 of its one-row nested grid.');
                 t.verifyEqual(savedAxes.Layout.Column,1);
+                % Размеры в пикселях появляются только при реальной раскладке окна; в matlab -batch
+                % (без экрана) сетка не раскладывается и высоты равны 0 — там проверяем лишь структуру.
+                if batchStartupOptionUsed, continue; end
                 t.verifyGreaterThanOrEqual(savedTable.Position(4),140, ...
                     'The saved KPI table must have a usable scrollable viewport.');
                 t.verifyGreaterThanOrEqual(savedAxesPanel.Position(4),200, ...

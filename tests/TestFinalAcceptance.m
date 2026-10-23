@@ -56,6 +56,8 @@ classdef TestFinalAcceptance < matlab.unittest.TestCase
         end
 
         function rejectsEvidenceOutsideProject(t)
+            % Путь с обратной косой чертой — выход за проект только в Windows; на других ОС '\' — символ имени.
+            t.assumeTrue(ispc,'Backslash path semantics are Windows-only.');
             root=fixtureRoot(); t.addTeardown(@() removeFolder(root));
             options=baseOptions(root);
             evidence=completeEvidence(root);

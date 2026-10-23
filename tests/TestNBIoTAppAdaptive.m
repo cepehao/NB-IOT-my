@@ -136,7 +136,8 @@ classdef TestNBIoTAppAdaptive < matlab.unittest.TestCase
             t.verifyTrue(contains(summaryItems(1),'CRC Msg3'));
             t.verifyTrue(contains(summaryItems(1),'CRC Data'));
             t.verifyTrue(contains(summaryItems(2),'UE: всего 1'));
-            t.verifyTrue(contains(summaryItems(4),'Пакеты:'));
+            % Строка пакетов присутствует; её позиция зависит от состава сводки.
+            t.verifyTrue(any(contains(summaryItems,'Пакеты:')));
             t.verifyTrue(contains(findall(app.Figure,'Tag','controllerChartInfo').Text, ...
                 'DEVELOPMENT'));
         end

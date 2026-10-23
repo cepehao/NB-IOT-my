@@ -46,10 +46,6 @@ modelNames={'linearRegression','decisionTree','randomForest','gradientBoosting'}
 bundleTemplate=struct('name','','bundle',struct(),'file','','sha256','','manifestFile','');
 bundles=repmat(bundleTemplate,1,numel(modelNames));
 metricRows=cell(0,9); validationMae=nan(1,numel(modelNames)); trainingSeconds=zeros(1,numel(modelNames));
-% Воспроизводимость обучения: фиксированный seed (ТЗ §40). Нарушает правило «только потоки»
-% (глобальный rng, восстанавливается после) — исправить при доработке ML.
-oldRng=rng; restoreRng=onCleanup(@() rng(oldRng));
-rng(options.seed,'twister');
 
 for modelIndex=1:numel(modelNames)
     modelName=modelNames{modelIndex}; started=tic;
@@ -571,8 +567,11 @@ switch name
         model=fitrtree(x,y,'MaxNumSplits',options.treeMaxNumSplits, ...
             'MinLeafSize',options.treeMinLeafSize);
     case 'randomForest'
+        % Единственная случайная модель (бутстреп и выбор признаков). Воспроизводимость (ТЗ §40)
+        % — собственным потоком с seed обучения, глобальный генератор не трогается (CLAUDE.md п. 4).
+        stream=RandStream('twister','Seed',options.seed);
         model=TreeBagger(options.forestNumTrees,x,y,'Method','regression', ...
-            'MinLeafSize',options.forestMinLeafSize);
+            'MinLeafSize',options.forestMinLeafSize,'Options',statset('Streams',stream));
     case 'gradientBoosting'
         learner=templateTree('MaxNumSplits',options.boostMaxNumSplits, ...
             'MinLeafSize',options.treeMinLeafSize,'Reproducible',true);

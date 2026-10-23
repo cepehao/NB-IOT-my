@@ -1,6 +1,9 @@
 classdef TestCheckpointProcessReader < matlab.unittest.TestCase
     methods (Test)
         function resumesOneUeBoundaryFromDifferentProcess(t)
+            % Запускается только из PowerShell-оркестратора, который задаёт папку через переменную
+            % окружения NB_IOT_CHECKPOINT_TEST_FOLDER; при обычном прогоне набора — пропуск.
+            t.assumeNotEmpty(getenv('NB_IOT_CHECKPOINT_TEST_FOLDER'),'Run by the process orchestrator only.');
             folder=TestSimulationCheckpoint.processFolder();
             inputPath=fullfile(folder,'resume-input.mat');
             t.assertTrue(isfile(inputPath),'Missing writer input must not be regenerated.');

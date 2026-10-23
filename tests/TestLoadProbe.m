@@ -205,6 +205,8 @@ classdef TestLoadProbe < matlab.unittest.TestCase
         end
 
         function refusesRunWhenAnotherWriterHoldsLedgerLease(t)
+            % Тест использует .NET (System.IO) и семантику Windows — на других ОС пропускается.
+            t.assumeTrue(ispc,'Requires Windows (.NET System.IO).');
             fixture=makeFixture(t);
             lockPath=[fixture.options.budgetLedgerFile '.writer.lock'];
             registryBefore=fileHash(fixture.options.registryFile);

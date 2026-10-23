@@ -55,15 +55,16 @@ classdef TestNBIoTAppPauseResumeEquivalence < matlab.unittest.TestCase
             t.verifyTrue(contains(detailText,'Диагностический SINR NPRACH'));
             summary=findall(app.Figure,'Tag','runSummary');
             summaryText=strjoin(string(summary.Value),newline);
-            t.verifyTrue(contains(summaryText,'Столкновения NPRACH:'));
+            % Сводка радиодиагностики: логические коллизии и физические перекрытия NPRACH.
+            t.verifyTrue(contains(summaryText,'Логические коллизии:'));
             outputFolder=tempname;
             t.addTeardown(@() removeFolder(outputFolder));
             resultPath=app.Session.save(outputFolder);
             t.verifyTrue(isfile(resultPath));
             [savedFolder,stem]=fileparts(resultPath);
             t.verifyTrue(isfile(fullfile(savedFolder,[stem '_radio.csv'])));
-            screenshotPath=fullfile(fileparts(fileparts(mfilename('fullpath'))), ...
-                'verification','local','gui-radio-diagnostics-preview-20261014.png');
+            % Снимок окна — во временную папку теста (CLAUDE.md правило 12: без файлов в проекте).
+            screenshotPath=fullfile(outputFolder,'gui-radio-diagnostics-preview.png');
             drawnow;
             exportapp(app.Figure,screenshotPath);
             t.verifyTrue(isfile(screenshotPath));

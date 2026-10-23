@@ -18,6 +18,8 @@ classdef TestCheckpointFileHash < matlab.unittest.TestCase
         end
 
         function multipleBlocksMatchIndependentDotNetSha(t)
+            % Тест использует .NET (System.IO) и семантику Windows — на других ОС пропускается.
+            t.assumeTrue(ispc,'Requires Windows (.NET System.IO).');
             p=[tempname '.bin']; t.addTeardown(@()delete(p));
             fid=fopen(p,'wb');
             for k=1:8192, fwrite(fid,uint8(0:255),'uint8'); end

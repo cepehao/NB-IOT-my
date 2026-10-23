@@ -1,6 +1,9 @@
 classdef TestCheckpointProcessWriter < matlab.unittest.TestCase
     methods (Test)
         function writesOneUeBoundaryForSeparateReader(t)
+            % Запускается только из PowerShell-оркестратора, который задаёт папку через переменную
+            % окружения NB_IOT_CHECKPOINT_TEST_FOLDER; при обычном прогоне набора — пропуск.
+            t.assumeNotEmpty(getenv('NB_IOT_CHECKPOINT_TEST_FOLDER'),'Run by the process orchestrator only.');
             folder=TestSimulationCheckpoint.processFolder();
             t.assertFalse(isfolder(folder),'Writer requires a fresh coordinator-selected folder.');
             mkdir(folder);

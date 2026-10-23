@@ -137,6 +137,8 @@ classdef TestSimulationCheckpoint < matlab.unittest.TestCase
         end
 
         function failedManifestReplacementKeepsPreviousCheckpoint(t)
+            % Тест использует .NET (System.IO) и семантику Windows — на других ОС пропускается.
+            t.assumeTrue(ispc,'Requires Windows (.NET System.IO).');
             [cfg,scenario,identity,execution]=checkpointFixture(); %#ok<ASGLU>
             checkpointFolder=tempname; mkdir(checkpointFolder);
             cleanup=onCleanup(@() removeFolder(checkpointFolder)); %#ok<NASGU>

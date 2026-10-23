@@ -29,7 +29,8 @@ classdef TestNBIoTAppUeDetails < matlab.unittest.TestCase
             t.verifyTrue(contains(text,'Опорный SNR UL/DL:'));
             t.verifyTrue(contains(text,'появится после завершения расчёта'));
             t.verifyTrue(contains(text,'Попытки доступа: 0'));
-            t.verifyTrue(contains(text,'Этап: ожидание'));
+            % Этап показывается как код состояния UE и пояснение (formatUeDetail).
+            t.verifyTrue(contains(text,'Этап: IDLE'));
 
             trigger(app.Figure,'Остановить');
             t.verifyEqual(app.Session.Status,'stopped');

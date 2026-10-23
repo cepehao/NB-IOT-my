@@ -1,4 +1,12 @@
 classdef TestStage2Acceptance < matlab.unittest.TestCase
+    methods (TestClassSetup)
+        function addStage2Folder(t)
+            % Функции Stage 2 лежат в verification/completion/stage-2; путь добавляется на время
+            % класса (PathFixture восстанавливает его), чтобы тест не зависел от порядка запуска.
+            t.applyFixture(matlab.unittest.fixtures.PathFixture( ...
+                fullfile(projectRoot(),'verification','completion','stage-2')));
+        end
+    end
     methods (Test)
         function requiresTechnicalReviewRecord(t)
             t.verifyError(@() acceptStage2Evidence('', '', struct()),...
@@ -32,6 +40,9 @@ classdef TestStage2Acceptance < matlab.unittest.TestCase
             root=projectRoot(); stageFolder=fullfile(root,'verification','completion','stage-2');
             sourceFolder=tempname(stageFolder); replayFolder=tempname(stageFolder);
             mkdir(sourceFolder); mkdir(replayFolder);
+            % Восстановление принимает только папки внутри проекта, поэтому фикстура лежит в
+            % verification/; лог-файл рядом с папкой тоже удаляется (правило 12: без следов в проекте).
+            logCleanup=onCleanup(@() deleteIfPresent([sourceFolder '.log'])); %#ok<NASGU>
             cleanup=onCleanup(@() removeFolders(sourceFolder,replayFolder));
             writeText([sourceFolder '.log'],...
                 'Known weak-UE CRC failure was not reproduced.');
@@ -233,4 +244,9 @@ for kind=kinds
 end
 checks=table(condition,id,present,ownDetected,miss,falseAlarm,estimatedDelaySamples,...
     estimatedCfoHz,actualDelaySamples,actualCfoHz);
+end
+
+function deleteIfPresent(path)
+%DELETEIFPRESENT Удаляет файл фикстуры, если он существует.
+if isfile(path), delete(path); end
 end
