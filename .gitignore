@@ -1,0 +1,41 @@
+# ── AI-агенты, скиллы, MCP (локальные, не в git) ──────────────────────────
+CLAUDE.md
+AGENTS.md
+.claude/
+.mcp.json
+agent-config/
+install-agent-config.sh
+setup-matlab-tools.sh
+tools/
+docs/TOOLS.md
+docs/superpowers/
+
+# ── Результаты прогонов и данные ───────────────────────────────────────────
+# Принятая калибровка NPRACH — обязательный вход симулятора, хранится в git.
+/results/*
+!/results/nprach-calibration.mat
+/data/
+/logs/
+/work/
+
+# ── MATLAB ─────────────────────────────────────────────────────────────────
+*.asv
+*.m~
+*.autosave
+*.mex*
+*.slxc
+slprj/
+codegen/
+resources/project/
+
+# ── Python / Julia (вспомогательный анализ) ────────────────────────────────
+__pycache__/
+.venv/
+*.ipynb_checkpoints
+Manifest.toml
+
+# ── ОС и редакторы ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

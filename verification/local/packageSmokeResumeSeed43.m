@@ -1,0 +1,44 @@
+projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
+projectRoot=char(java.io.File(projectRoot).getCanonicalPath());
+packageRoot=fullfile(projectRoot,'verification','external','variant2-local-snapshot-20261014-seed43','project');
+smokeRoot=fullfile(projectRoot,'verification','local','package-smoke-variant2-20261014-seed43');
+cd(packageRoot); addpath(packageRoot); setupProject();
+input=load(fullfile(smokeRoot,'resume-input.mat'));
+if isfile(input.pauseFile), delete(input.pauseFile); end
+meta=nbiot.experiments.runStaticCase(input.cfg,input.caseFolder,input.metadata,[],input.runtimeOptions);
+assert(strcmp(meta.status,'completed'),'nbiot:task6:Smoke','Packaged checkpoint resume did not complete.');
+verification=nbiot.results.verifyCase(meta.attemptFolder,input.metadata);
+assert(verification.passed,'nbiot:task6:Smoke','Packaged result failed verifyCase.');
+loaded=load(meta.resultFile,'result'); result=loaded.result;
+assert(result.actualTick==1500&&strcmp(result.status,'completed'), ...
+    'nbiot:task6:Smoke','Packaged physical smoke has an incomplete horizon.');
+assert(isfield(result.kpiSummary,'service')&& ...
+    strcmp(result.kpiSummary.service.definition,'service-outage-horizon-v1')&& ...
+    istable(result.groupKpi),'nbiot:task6:Smoke','Service/group KPI fields are missing from the real result.');
+[~,resultStem]=fileparts(meta.resultFile);
+groupsPath=fullfile(meta.attemptFolder,[resultStem '_groups.csv']);
+assert(isfile(groupsPath),'nbiot:task6:Smoke','Group KPI CSV was not exported.');
+summary=nbiot.ui.formatResultSummary(result);
+assert(contains(summary,'service-outage-horizon-v1')&&contains(summary,'Service outage'), ...
+    'nbiot:task6:Smoke','UI result formatter omitted the service outage definition.');
+progress=jsondecode(fileread(input.progressFile));
+assert(strcmp(progress.phase,'package-smoke-completed')&&~isempty(progress.lastCheckpoint), ...
+    'nbiot:task6:Smoke','Completed checkpoint progress was not retained.');
+readerProcessId=feature('getpid');
+assert(readerProcessId~=input.writerProcessId,'nbiot:task6:Smoke','Resume did not use a new MATLAB process.');
+report=struct('status','completed','packageRoot','verification/external/variant2-local-snapshot-20261014-seed43/project', ...
+    'caseKey',meta.caseKey,'numUE',result.config.simulation.numUE,'actualTick',result.actualTick, ...
+    'writerProcessId',input.writerProcessId,'readerProcessId',readerProcessId, ...
+    'checkpointFolder',strrep(input.checkpointFolder,[projectRoot filesep],''), ...
+    'checkpointBytes',sum([dir(fullfile(input.checkpointFolder,'checkpoint-tick-*.mat')).bytes]), ...
+    'verifyCasePassed',verification.passed,'groupKpiCsv',strrep(groupsPath,[projectRoot filesep],''), ...
+    'serviceDefinition',result.kpiSummary.service.definition,'uiFormatterPassed',true, ...
+    'finishedAtUtc',char(datetime('now','TimeZone','UTC','Format','yyyy-MM-dd''T''HH:mm:ss''Z''')));
+reportPath=fullfile(smokeRoot,'smoke-report.json');
+fid=fopen(reportPath,'w','n','UTF-8'); assert(fid>=0,'nbiot:task6:Smoke','Cannot write smoke report.');
+cleanup=onCleanup(@() fclose(fid));
+fwrite(fid,unicode2native(jsonencode(report,'PrettyPrint',true),'UTF-8'),'uint8');
+fprintf('PACKAGE_SMOKE_COMPLETED ue=%d ticks=%d writerPID=%d readerPID=%d service=%s uiFormatter=passed\n', ...
+    result.config.simulation.numUE,result.actualTick,input.writerProcessId,readerProcessId,result.kpiSummary.service.definition);
+fprintf('PACKAGE_SMOKE_REPORT=%s\n',strrep(reportPath,[projectRoot filesep],''));
+
