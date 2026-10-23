@@ -1,5 +1,8 @@
 function [tx,state]=mandatoryDL(cfg,tick,state)
-% Generate broadcast/synchronization subframes lazily; payload grids include NRS.
+%MANDATORYDL Формирует обязательный подкадр DL соты: NPSS, NSSS, NPBCH (MIB-NB) или SIB1-NB.
+%   Эти сигналы занимают ресурсы DL и создают реальную нагрузку на канал; сами по себе процедуру
+%   поиска соты не моделируют (UE заранее знает параметры соты, ADR-005). STATE — состояние
+%   кодера SIB1-NB между подкадрами пакета.
 if nargin<3 || isempty(state), state=struct('sibEncoder',[]); end
 nbiot.phy.requireToolbox({'lteNPSS','lteNSSS','lteNPBCH','lteBCH','lteNRS','lteNDLSCH'});
 [mask,kinds]=nbiot.scheduler.mandatoryDlMask(tick+1,cfg.phy.cellId);
@@ -17,6 +20,7 @@ elseif kinds.npbch(end)
     cw=lteBCH(mib,1600,1); grid(lteNPBCHIndices(enb))=lteNPBCH(enb,cw);
     grid(lteNRSIndices(enb))=lteNRS(enb); kind='NPBCH';
 else
+    % SIB1-NB: NPDSCH 8 подкадров × 4 повтора, RNTI 0xFFFF, фиксированная полезная нагрузка.
     chs=struct('NSF',8,'NRep',4,'NPDSCHDataType','SIB1NB','RNTI',65535);
     [~,info]=lteNPDSCHIndices(enb,chs); cw=lteNDLSCH(info.G,zeros(208,1,'int8'));
     % SIB1-NB is a fixed bootstrap bit payload; full ASN.1 RRC is out of scope.

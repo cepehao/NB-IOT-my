@@ -1,5 +1,6 @@
 function summary=buildUeSummary(cfg,scenario,packets,attempts,deviceStates)
 %BUILDUESUMMARY Combine per-UE scenario, radio-access and service outcomes.
+%   Таблица по UE (ТЗ §47 Per-UE): геометрия, потери, мощности, SNR, CFO, попытки, итог обслуживания.
 cfg=nbiot.config.validateConfig(cfg);
 n=cfg.simulation.numUE;
 if ~isstruct(scenario)||~isfield(scenario,'ue')||numel(scenario.ue)~=n|| ...

@@ -1,5 +1,6 @@
 function measurement=profileBaseline(numUE,calibrationFile)
 %PROFILEBASELINE Measure on actual target hardware; no precomputed estimates.
+%   Замер времени базового прогона на текущей машине (профиль производительности, ТЗ §54).
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 if nargin<1, numUE=100; end
 if nargin<2, calibrationFile=fullfile(root,'results','nprach-calibration.mat'); end

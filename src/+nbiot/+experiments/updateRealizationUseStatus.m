@@ -1,5 +1,6 @@
 function updateRealizationUseStatus(registryFile,role,ids,status)
 %UPDATEREALIZATIONUSESTATUS Close a previously registered planned allocation.
+%   Закрытие записи реестра реализаций. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if ~ismember(status,{'completed','failed'})
     error('nbiot:experiments:RegistryEntry','Final status must be completed or failed.');
 end

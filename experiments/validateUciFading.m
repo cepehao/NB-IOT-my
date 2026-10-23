@@ -1,5 +1,6 @@
 function report=validateUciFading(options)
 % Statistical valid-resource UCI risk; does not eliminate known aliases.
+%   Риск ложного ACK (UCI) при замираниях.
 if nargin<1, options=struct(); end
 if ~isfield(options,'outputFolder'), options.outputFolder=fullfile(fileparts(fileparts(mfilename('fullpath'))),'results','uci-fading'); end
 if ~isfield(options,'numWorkers'), options.numWorkers=2; end

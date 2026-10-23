@@ -1,5 +1,6 @@
 function result=runBaseline(calibrationFile)
 %RUNBASELINE Baseline source; first execution requires a calibrated detector.
+%   Базовый прогон по defaultConfig (1000 UE, массовый доступ) с калибровкой NPRACH.
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 cfg=nbiot.config.defaultConfig(); cfg.logging.outputFolder=fullfile(root,'results');
 if nargin<1, calibrationFile=fullfile(cfg.logging.outputFolder,'nprach-calibration.mat'); end

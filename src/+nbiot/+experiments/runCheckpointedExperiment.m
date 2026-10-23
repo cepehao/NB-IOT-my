@@ -1,5 +1,6 @@
 function [result,info]=runCheckpointedExperiment(cfg,scenario,execution,controllerOptions,checkpointOptions)
 %RUNCHECKPOINTEDEXPERIMENT Run in step-sized portions and save recoverable state.
+%   Прогон частями с сохранением чекпоинтов (возобновление после прерывания).
 if nargin<2, scenario=[]; end
 if nargin<3||isempty(execution), execution=struct(); end
 if nargin<4||isempty(controllerOptions), controllerOptions=struct(); end

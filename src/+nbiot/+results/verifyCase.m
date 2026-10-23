@@ -1,5 +1,6 @@
 function report=verifyCase(caseFolder,expected,memoryResult,requireMarker)
 %VERIFYCASE Check a saved result, exported tables and run provenance.
+%   Проверка сохранённого прогона: полнота файлов, таблиц и хешей. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<2 || isempty(expected), expected=struct(); end
 if nargin<3, memoryResult=[]; end
 if nargin<4, requireMarker=true; end

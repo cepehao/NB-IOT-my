@@ -1,5 +1,6 @@
 function report=validateCollisionCapture(options)
 %VALIDATECOLLISIONCAPTURE Small independent physical diagnostics, not acceptance statistics.
+%   Физические проверки коллизий и capture (ТЗ §34–35) на малых сценариях.
 % DesignOnly lists the fixed diagnostic grid without running MATLAB PHY.
 % Normal runs use the unchanged simulator/receivers and accepted calibration.
 % Analyzer truth maps decoded tokens to UE only after reception; it never

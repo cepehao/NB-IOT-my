@@ -1,5 +1,8 @@
 function [blocks,map]=segmentPacket(bits,sequence)
-%SEGMENTPACKET MSB-first 48 bit wrapper, zero-based fragment indices.
+%SEGMENTPACKET Нарезка пакета на транспортные блоки данных NPUSCH по 256 бит (TBS профиля, ТЗ §20).
+%   Блок = заголовок 48 бит [номер пакета 16 | индекс фрагмента 8 (с нуля) | число фрагментов 8 |
+%   число полезных бит 8 | нули 8] + до 208 бит данных + нулевой padding. Биты старшим вперёд.
+%   Пакет 200 байт = 1600 бит → 8 фрагментов (7 × 208 + 144).
 validateattributes(bits,{'numeric','logical'},{'vector','nonempty'});
 if any(bits(:)~=0&bits(:)~=1), error('nbiot:traffic:MalformedPacket','Nonbinary payload'); end
 validateattributes(sequence,{'numeric'},{'scalar','integer','>=',0,'<=',65535});

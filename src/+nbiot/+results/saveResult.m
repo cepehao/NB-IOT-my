@@ -1,5 +1,6 @@
 function destination=saveResult(result,folder,metadata)
 %SAVERESULT Save legacy exports, or transactionally commit a manifested case.
+%   Сохранение результата: MAT + CSV-таблицы (ТЗ §46.14, §47) в results/ (не в git).
 if nargin<2 || isempty(folder), folder=result.config.logging.outputFolder; end
 if nargin<3
     destination=saveLegacyResult(result,folder);

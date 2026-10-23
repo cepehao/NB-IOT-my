@@ -1,5 +1,11 @@
 function fields = decodeMessage(kind,bits)
-%DECODEMESSAGE Validate the decoded wire bits, not the transmitted payload.
+%DECODEMESSAGE Разбор принятых 88 бит управляющего сообщения KIND (ТЗ §18–19).
+%   KIND: 'RAR' — MAC RAR NB-IoT (BI-подзаголовок, RAPID, TA 11 бит, UL grant 15 бит, Temp C-RNTI 16 бит;
+%   TS 36.321 §6.1.5, TS 36.213 §16.3.3); 'Msg3' — token 48 бит + номер пакета 16 бит;
+%   'Msg4' — MAC CE contention resolution identity (LCID 28) + padding (LCID 31);
+%   'receipt' — квитанция модели: метка 0xA1, номер пакета, индекс фрагмента, статус.
+%   Проверяет заголовки, зарезервированные биты и нулевой хвост; при ошибке — nbiot:protocol:Malformed
+%   (сообщение считается непринятым). Разбираются принятые биты, не переданные.
 bits=int8(bits(:));
 if numel(bits)~=88 || any(bits~=0 & bits~=1)
     error('nbiot:protocol:Malformed','Expected an 88-bit message.');

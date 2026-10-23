@@ -1,5 +1,6 @@
 function manifest=runComparisonSweep(options)
 %RUNCOMPARISONSWEEP Run or plan paired Static/Adaptive comparisons.
+%   Серия парных сравнений Static / Adaptive-P / Adaptive-RA/DT на одних реализациях (ТЗ §28, §63).
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(root); addpath(fullfile(root,'experiments')); setupProject();
 options=normalizeOptions(options,root);

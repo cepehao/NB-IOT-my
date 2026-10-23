@@ -1,5 +1,7 @@
 classdef SimulationSession < handle
     %SIMULATIONSESSION Own one bounded simulator session for the user interface.
+    %   Сессия расчёта для GUI (ТЗ §46.5): запуск/пауза/продолжение/стоп шагами модели;
+    %   GUI не меняет RNG и шаг модели (ТЗ §46.15–46.17).
     properties (SetAccess=private)
         Status = 'idle'
         Config = struct()

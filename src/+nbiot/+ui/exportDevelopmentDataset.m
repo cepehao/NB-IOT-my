@@ -1,5 +1,6 @@
 function summary=exportDevelopmentDataset(resultFile,outputFolder)
 %EXPORTDEVELOPMENTDATASET Export one completed, locally bounded case as development data.
+%   Экспорт датасета одного локального прогона (кнопка «Экспортировать датасет», ТЗ §46.5).
 if ~(ischar(resultFile)||(isstring(resultFile)&&isscalar(resultFile))) || ...
         isempty(strtrim(char(resultFile))) || ~isfile(char(resultFile))
     error('nbiot:dataset:InvalidCase','Choose a saved, verified result MAT file.');

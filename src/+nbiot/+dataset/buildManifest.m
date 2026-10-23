@@ -1,5 +1,7 @@
 function manifest=buildManifest(realizationIds)
-%BUILDMANIFEST Deterministic 70/15/15 assignment of entire realizations.
+%BUILDMANIFEST Разбиение реализаций на train/validation/test 70/15/15 (ТЗ §21, §40).
+%   Делятся целые внешние реализации (по realizationId mod 20: 0–13 train, 14–16 validation, 17–19 test),
+%   а не отдельные окна: окна одной реализации коррелированы, их смешение дало бы утечку.
 ids=unique(double(realizationIds(:)));
 if any(ids<0 | ids>=4000 | ids~=fix(ids)), error('nbiot:dataset:RunId','Expected main realization IDs 0:3999.'); end
 % Twenty-ID blocks interleave independent realizations; never split windows.

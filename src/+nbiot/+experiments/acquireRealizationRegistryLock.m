@@ -1,5 +1,6 @@
 function lockCleanup=acquireRealizationRegistryLock(registryFile)
 %ACQUIREREALIZATIONREGISTRYLOCK Serialize registry read/check/write operations.
+%   Блокировка реестра использованных реализаций. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 lockFolder=[char(registryFile) '.lock']; lock=java.io.File(lockFolder); clock=tic;
 while ~lock.mkdir()
     if toc(clock)>=30

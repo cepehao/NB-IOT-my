@@ -1,5 +1,6 @@
 function candidate=prepareModelAcceptance(options)
 %PREPAREMODELACCEPTANCE Create portable candidate metadata from existing evidence.
+%   Подготовка записи допуска модели. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 try
     required={'modelFile','datasetFile','datasetManifestFile','datasetArtifactsFile', ...
         'trainingManifestFile','metricsFile','sourceManifestFile','calibrationFile', ...

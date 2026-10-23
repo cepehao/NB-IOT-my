@@ -1,5 +1,6 @@
 function report=runLoadPilot(options)
 %RUNLOADPILOT Measure one full Static case at each planned UE count.
+%   Пилот: один прогон Static на каждом уровне числа UE (ТЗ §29).
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 addpath(fullfile(root,'verification','completion','stage-2'));
 if nargin<1, options=struct(); end

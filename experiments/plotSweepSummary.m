@@ -1,5 +1,6 @@
 function report=plotSweepSummary(input,outputFolder)
 % Verified independent runs; failed/partial rows remain in the audit.
+%   Графики серии прогонов по нагрузкам (ТЗ §29).
 if istable(input), manifest=input; else, manifest=readtable(input,'TextType','string'); end
 required={'numUE','burstDurationTicks','realizationId','status','resultFile','caseKey','configSha256','sourceSha256','calibrationSha256'};
 assert(all(ismember(required,manifest.Properties.VariableNames)),'nbiot:results:Manifest','Missing manifest columns.');

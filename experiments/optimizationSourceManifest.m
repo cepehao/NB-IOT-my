@@ -1,5 +1,6 @@
 function manifest=optimizationSourceManifest(projectRoot)
 %OPTIMIZATIONSOURCEMANIFEST Hash MATLAB sources in a project snapshot.
+%   Хеши исходников для сравнения версий при оптимизации.
 % Only computational sources: docs, tests, outputs and nested checkouts cannot
 % change the runtime identity. External runners are registered separately.
 files=dir(fullfile(projectRoot,'src','**','*.m'));

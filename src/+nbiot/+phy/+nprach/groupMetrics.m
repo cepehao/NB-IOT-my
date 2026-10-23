@@ -1,5 +1,12 @@
 function [metrics,groups]=groupMetrics(cfg,rx,occasion)
-% All-tone partial correlation in four public NPRACH symbol groups.
+%GROUPMETRICS Статистика присутствия каждой из 12 преамбул NPRACH в окне возможности.
+%   Для каждой из 4 групп символов формата 0: принятые отсчёты проецируются на базис шаблонов всех
+%   12 преамбул, умноженных на полином 2-й степени по времени (огибающая поглощает CFO до ±200 Гц
+%   и неизвестную фазу канала). Метрика преамбулы в группе — доля энергии, объяснённая её
+%   «частной» компонентой (ортогональной остальным преамбулам), к остатку + этой доле.
+%   Итог METRICS(12×1) = минимум по группам (преамбула должна быть во всех четырёх).
+%   Окно отсчётов внутри группы выбрано так, чтобы при задержках −8..+20 мкс не захватывать CP
+%   и края фильтра. Базисы и QR-разложения кэшируются (зависят только от конфигурации).
 degree=2; % Quadratic envelope spans the static-v1 +/-200 Hz CFO profile.
 persistent cachedByDegree keyByDegree
 if isempty(cachedByDegree), cachedByDegree=cell(1,7); keyByDegree=cell(1,7); end

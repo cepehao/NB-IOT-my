@@ -1,5 +1,6 @@
 function output=buildRadioDiagnosticsTable(result)
 %BUILDRADIODIAGNOSTICSTABLE Flatten radio diagnostics for CSV export.
+%   Радиодиагностика в плоскую таблицу для экспорта CSV.
 names={'scope','measurement','occasionId','attemptId','otherAttemptId', ...
     'ueId','nInit','contextId','channel','numerator','denominator','value', ...
     'unit','estimate','configured','error','provenance'};

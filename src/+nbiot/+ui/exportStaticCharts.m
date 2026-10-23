@@ -1,5 +1,6 @@
 function files=exportStaticCharts(chartAxes,outputFolder)
 %EXPORTSTATICCHARTS Save the eight Static chart axes as separate PNG files.
+%   Экспорт графиков GUI в PNG (ТЗ §46.14).
 keys={'activeUe','actualLoad','collisions','successfulRa', ...
     'throughput','delay','dataBler','occupancy'};
 names={'active-ue.png','actual-load.png','ra-collisions.png', ...

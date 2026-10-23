@@ -1,5 +1,6 @@
 function [bundles,report]=trainLoadModels(options)
 %TRAINLOADMODELS Train the four load models from one explicitly named dataset.
+%   Обучение четырёх ML-моделей по указанному датасету (обёртка над nbiot.ml.trainLoadModels).
 if nargin~=1||~isstruct(options)||~isscalar(options)
     error('nbiot:ml:RunnerOptions', ...
         'Supply one options structure with datasetFile and outputFolder.');

@@ -1,5 +1,5 @@
 function digest=policySha256(policy)
-%POLICYSHA256 Hash a canonical adaptive policy using adaptiveDefaults field order.
+%POLICYSHA256 SHA-256 канонической записи политики контроллера (для журнала решений и воспроизводимости).
 defaults=adaptiveDefaults();
 required=fieldnames(defaults);
 if ~isstruct(policy)||~isscalar(policy)|| ...

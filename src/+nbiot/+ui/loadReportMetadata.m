@@ -1,5 +1,6 @@
 function view=loadReportMetadata(kpiFile)
 %LOADREPORTMETADATA Read the small report sidecar linked to a KPI CSV.
+%   Чтение описания сохранённого прогона, связанного с таблицей KPI.
 % The reader intentionally never loads the simulation MAT file or calls verifyCase.
 view=emptyView('unavailable','Отчёт не найден.');
 try

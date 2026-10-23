@@ -1,5 +1,7 @@
 function cfg=loadCalibration(cfg,path)
 %LOADCALIBRATION Reject thresholds calibrated for a different receiver profile.
+%   Загрузка порога детектора NPRACH из results/nprach-calibration.mat с проверкой, что калибровка
+%   сделана для той же конфигурации NPRACH и версии детектора (receiverRevision).
 if ~isfile(path), error('nbiot:phy:Calibration','Missing %s. Run calibrateNprach on the MATLAB PC.',path); end
 calibrationSha=nbiot.ml.fileSha256(path);
 data=load(path,'report');

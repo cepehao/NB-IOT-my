@@ -1,5 +1,6 @@
 function result=runSingleUe(calibrationFile)
 %RUNSINGLEUE Small, strong-link integration experiment before 1000 UE.
+%   Короткая проверка цепочки: 1 UE рядом с BS, сильный канал; ожидается доставка 1 пакета.
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;
 cfg.cell.radiusM=20; cfg.cell.indoorFraction=0;

@@ -1,5 +1,6 @@
 function record=runComparisonCase(cfg,method,caseFolder,options)
 %RUNCOMPARISONCASE Run or resume one method for a paired external realization.
+%   Один метод (Static/Adaptive-P/Adaptive-RA/DT) на заданной внешней реализации (ТЗ §28, §63).
 if nargin<4||~isstruct(options)||~isscalar(options)
     error('nbiot:experiments:ComparisonCaseOptions','A scalar case-options structure is required.');
 end

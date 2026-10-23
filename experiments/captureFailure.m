@@ -1,5 +1,6 @@
 function artifact=captureFailure(sim,options)
 % Selected recent RX window only; analyzer truth lives in a separate file.
+%   Сохранение окна приёма для разбора сбоя (истина — отдельным файлом).
 assert(sim.cfg.logging.saveWaveforms,'nbiot:diagnostics:Disabled',...
     'Set logging.saveWaveforms=true before requesting a selected capture.');
 required={'direction','receiverId','startSample','endSample','byteBudget','outputFolder'};

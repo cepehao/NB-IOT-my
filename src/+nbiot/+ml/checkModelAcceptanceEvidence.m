@@ -1,5 +1,6 @@
 function report=checkModelAcceptanceEvidence(acceptance,rootFolder)
 %CHECKMODELACCEPTANCEEVIDENCE Validate portable evidence; load only dataset.mat variable data.
+%   Проверка комплекта доказательств допуска ML-модели. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 errors={}; evidenceDigest=''; evidenceFiles=struct('path',{},'sha256',{});
 sourceSha256=''; calibrationSha256='';
 try

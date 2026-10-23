@@ -1,5 +1,6 @@
 function policy=adaptiveDefaults()
 %ADAPTIVEDEFAULTS Provisional development-only load thresholds.
+%   Пробные пороги Adaptive-P и Adaptive-RA/DT (ТЗ §24–25) — не подобраны по данным (ADR-005).
 policy=struct();
 policy.windowTicks=500;
 policy.staticAccessProbability=1;

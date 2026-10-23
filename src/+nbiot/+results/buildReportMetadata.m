@@ -1,5 +1,6 @@
 function metadata=buildReportMetadata(result)
 %BUILDREPORTMETADATA Summarize facts already present in a simulation result.
+%   Краткое описание прогона (параметры, итоговые KPI) для подписи сохранённых таблиц.
 % This function does not start a simulation or mutate the supplied result.
 fields=struct('mode','','numUE',NaN,'activeUE',NaN,'trafficType','', ...
     'payloadBytes',NaN,'periodTicks',NaN,'durationTicks',NaN, ...

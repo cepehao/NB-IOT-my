@@ -1,5 +1,8 @@
 function [obs,target]=closeWindow(observed,truth,first,last,raIntegral,activeIntegral,queueIntegral,realizationId,windowTicks,resourceOccupancy,action)
-%CLOSEWINDOW Finish a window using receiver observations and BS-known state only.
+%CLOSEWINDOW Строка датасета для окна [FIRST, LAST) (ТЗ §22): признаки BS и target.
+%   OBS — признаки только из журнала наблюдений BS (разрешённые виды событий; исход декодирования
+%   у UE запрещён — nbiot:dataset:Leakage); TARGET — из истины и интегралов по тикам окна.
+%   Также в признаки входят занятость ресурсов окна и действие контроллера, действовавшее в окне.
 e=observed([observed.tick]>=first & [observed.tick]<last);
 if nargin<9, windowTicks=500; end
 if nargin<10||isempty(resourceOccupancy), resourceOccupancy=missingOccupancy(); end
@@ -28,6 +31,7 @@ obs={realizationId,windowId,first,last,det,average(peak),maximum(maxPeak), ...
     resourceOccupancy.ulRaOccupancy,resourceOccupancy.ulDtOccupancy, ...
     resourceOccupancy.dlRaOccupancy,resourceOccupancy.dlDtOccupancy, ...
     action.accessProbability,action.raShare};
+% Target: среднее по тикам число UE в RA и с работой, средняя очередь, число Msg1 и UE, передавших Msg1.
 msg=t(strcmp({t.kind},'msg1')); users=[];
 for k=1:numel(msg), users(end+1)=msg(k).fields.ueId; end %#ok<AGROW>
 width=last-first;

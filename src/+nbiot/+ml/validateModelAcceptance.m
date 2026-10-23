@@ -1,5 +1,6 @@
 function metadata=validateModelAcceptance(path,modelFile,policy,execution,comparisonIds,cfg)
 %VALIDATEMODELACCEPTANCE Enforce scientific model admission without running an experiment.
+%   Проверка научного допуска модели перед внешним запуском Adaptive. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 try
     if nargin<6, reject('The six-argument admission interface requires cfg.'); end
     if ~(ischar(path)||(isstring(path)&&isscalar(path)))||~isfile(path)

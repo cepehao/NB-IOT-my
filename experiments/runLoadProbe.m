@@ -1,5 +1,6 @@
 function report=runLoadProbe(options)
 %RUNLOADPROBE Run the four-load preliminary Static probe with safe resume.
+%   Предварительный нагрузочный прогон Static на 4 уровнях с возобновлением. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 % The five-load budget pilot remains a separate interface in runLoadPilot.
 if nargin<1, options=struct(); end
 root=fileparts(fileparts(mfilename('fullpath')));

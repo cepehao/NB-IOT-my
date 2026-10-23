@@ -1,5 +1,6 @@
 function report=runFinalAcceptance(options)
 %RUNFINALACCEPTANCE Check final-acceptance evidence files and their hashes.
+%   Проверка файлов итоговой приёмки. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 % The audit never runs simulations or changes evidence; it only writes review reports.
 required={'projectRoot','evidenceManifest','outputFolder'};
 if ~isstruct(options)||~isscalar(options)||~all(isfield(options,required))

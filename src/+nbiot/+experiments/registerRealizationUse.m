@@ -1,5 +1,6 @@
 function entry=registerRealizationUse(registryFile,role,ids,source,status)
 %REGISTERREALIZATIONUSE Atomically record a completed or planned ID allocation.
+%   Запись использования номера реализации в реестр. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<5, status='completed'; end
 lockCleanup=nbiot.experiments.acquireRealizationRegistryLock(registryFile); %#ok<NASGU>
 registry=readRegistry(registryFile); role=char(string(role)); source=char(string(source)); status=char(string(status));

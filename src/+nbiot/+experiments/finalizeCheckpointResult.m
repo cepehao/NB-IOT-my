@@ -1,5 +1,6 @@
 function result=finalizeCheckpointResult(resultFcn,progressFile,update)
 %FINALIZECHECKPOINTRESULT Publish finalizing before invoking the result callback.
+%   Завершение прогона с чекпоинтами и передача результата.
 update.phase='result-finalizing'; update.status='running';
 update.errorIdentifier=''; update.failedPhase='';
 nbiot.experiments.writeRuntimeProgress(progressFile,update);

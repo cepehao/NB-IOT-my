@@ -1,5 +1,6 @@
 function metadata=publishModelAcceptance(options)
 %PUBLISHMODELACCEPTANCE Publish a separate reviewed acceptance or rejection record.
+%   Публикация решения о допуске модели. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 try
     required={'candidateFile','reviewFile','outputFile'};
     if ~isstruct(options)||~isscalar(options)||~all(isfield(options,required))|| ...

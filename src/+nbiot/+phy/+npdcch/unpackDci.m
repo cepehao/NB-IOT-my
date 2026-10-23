@@ -1,4 +1,5 @@
 function dci=unpackDci(bits)
+%UNPACKDCI Разбор 23 бит DCI N0/N1 в struct полей (обратное к packDci).
 bits=bits(:); assert(numel(bits)==23 && all(bits==0 | bits==1),'nbiot:phy:DciLength','Expected 23 binary DCI bits.');
 if bits(1)==0
     dci=struct('format','N0'); at=2;

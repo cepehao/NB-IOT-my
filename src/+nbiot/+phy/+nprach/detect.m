@@ -1,4 +1,14 @@
 function [detected,metrics]=detect(cfg,rx,occasion)
+%DETECT Многопользовательский детектор NPRACH (ТЗ §14 п.10–12, §15–16).
+%   [DETECTED, METRICS] = detect(CFG, RX, OCCASION)
+%   1) METRICS(12) — статистика присутствия каждой преамбулы (nbiot.phy.nprach.groupMetrics);
+%      кандидаты — те, у кого METRICS >= порог калибровки cfg.phy.nprachThreshold.
+%   2) Кандидаты подтверждаются по убыванию метрики: согласованная фильтрация с шаблоном по сетке
+%      CFO и задержке (estimateParameters); затем подтверждённые сигналы вычитаются из принятого
+%      (МНК по всем найденным), чтобы сильная преамбула не маскировала слабую (capture/near-far).
+%   Выход DETECTED: nInit, метрика, matchScore, оценки задержки (с) и CFO (Гц), порог, тик готовности.
+%   Детектор не знает, какие UE передавали, и не использует истинный канал.
+%   Штатный lteNPRACHDetect не применяется: он возвращает только одну, сильнейшую преамбулу (ADR-002).
 threshold=cfg.phy.nprachThreshold;
 assert(isfinite(threshold) && threshold>0 && threshold<=1,...
     'nbiot:phy:Calibration','Set a calibrated NPRACH threshold before simulation.');
@@ -33,12 +43,17 @@ end
 [~,order]=sort([detected.nInit]); detected=detected(order);
 end
 
+%ESTIMATEPARAMETERS Оценка задержки и CFO преамбулы INDEX: для каждой гипотезы CFO из
+%   cfg.phy.nprachCfoGridHz — корреляция через FFT с шаблоном в диапазоне задержек −8..+20 мкс,
+%   нормированная на энергию; уточнение пика параболической интерполяцией по задержке и по CFO.
+%   BEST — нормированный пик (0..1), сравнивается с тем же порогом.
 function [bestDelay,bestCfo,best]=estimateParameters(cfg,rx,occasion,bank,index)
 fs=1920000; delays=round((-8e-6:1/fs:20e-6)*fs);
 delays=min(delays):max(delays)+ceil(cfg.channel.fractionalFilterLength/2);
 count=numel(bank{1}.waveform); first=occasion.startTick*1920+min(delays);
 w=nbiot.phy.extractWindow(rx,first,count+max(delays)-min(delays)); w=w(:);
 cfo=cfg.phy.nprachCfoGridHz; len=2^nextpow2(numel(w)+count-1);
+% Кэш FFT сопряжённых шаблонов всех 12 преамбул (не зависят от UE).
 persistent referenceFft referenceKey
 cacheKey=[len cfg.phy.cellId cfg.ra.periodTicks];
 if isempty(referenceFft) || ~isequal(referenceKey,cacheKey)

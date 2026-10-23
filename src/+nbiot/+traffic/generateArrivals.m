@@ -1,5 +1,14 @@
 function arrivals=generateArrivals(cfg,sources)
-%GENERATEARRIVALS Generate continuous times before policy or queue decisions.
+%GENERATEARRIVALS Расписание пакетов реализации (ТЗ §11), генерируется до запуска и не зависит от политики.
+%   Типы трафика cfg.traffic.kind:
+%     'burst'    — массовый доступ (основной сценарий ТЗ): каждый активный UE создаёт 1 пакет в момент,
+%                  равномерно распределённый на [burstStartTick, burstStartTick + burstDurationTicks);
+%     'periodic' — пакет каждые periodTicks со случайной начальной фазой;
+%     'poisson'  — экспоненциальные интервалы с интенсивностью poissonRatePerSecond на UE;
+%     'none'     — без трафика.
+%   Активные UE: все или явный список activeUeIds. Время округляется вверх до тика; пакеты за горизонтом
+%   отбрасываются. Полезная нагрузка — случайные биты из потока 'payload'. Результат отсортирован по
+%   (тик, UE, номер) и пронумерован packetId = 1..K.
 cfg=nbiot.config.validateConfig(cfg); t=cfg.traffic; horizon=cfg.simulation.durationTicks;
 arrivals=struct('packetId',{},'ueId',{},'createdTick',{},'sequence',{},'payloadBits',{},'continuousTimeSeconds',{});
 ueIds=1:cfg.simulation.numUE;

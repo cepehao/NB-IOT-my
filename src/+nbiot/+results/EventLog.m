@@ -1,5 +1,6 @@
 classdef EventLog < handle
     %EVENTLOG Append-only semantic events; receiver features have a whitelist.
+    %   Журнал событий (тик, вид, поля) только на дозапись; основа журналов наблюдений и истины.
     properties (Access=private)
         buffer = cell(256,1)
         used = 0

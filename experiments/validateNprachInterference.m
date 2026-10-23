@@ -1,5 +1,6 @@
 function report=validateNprachInterference(options)
 % Physical no-NPRACH windows; truth is used only to score false detections.
+%   Ложные обнаружения NPRACH на окнах без преамбул (ТЗ §14: false alarm).
 if nargin<1, options=struct(); end
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 defaults=struct('numWindows',20000,'numWorkers',3,'batchSize',250,...

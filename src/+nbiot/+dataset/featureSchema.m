@@ -1,5 +1,15 @@
 function s=featureSchema(version)
-%FEATURESCHEMA Ordered, versioned whitelist of BS-observable inputs and targets.
+%FEATURESCHEMA Схема датасета (ТЗ §21–22, §40): белый список признаков BS и целевых величин.
+%   Признаки (observationNames, только то, что BS знает к концу окна):
+%     ключи realizationId, windowId, startTick, endTick;
+%     detectedCandidates — обнаруженные преамбулы; meanPeakMetric, maxPeakMetric — метрики детектора;
+%     meanRxEnergyW — энергия принятого NPRACH (Вт); ulTbDecodes, ulCrcFailures — декодирования UL и
+%     ошибки CRC; rarSent, grantsSent — выданные RAR и grants; pendingRequestsMean — очередь BS;
+%     (v2) занятость RA/DT в UL/DL, действовавшие в окне P и доля RA.
+%   Цели (targetNames, истина симулятора — только для обучения и оценки, НЕ признаки):
+%     meanRaUe — среднее число UE в фазе RA (основной target), meanActiveUe, meanWaitingQueuePerUe,
+%     msg1Transmissions, uniqueMsg1Ue.
+%   excludedSources — что запрещено использовать в признаках (истинные очереди, коллизии, каналы).
 if nargin<1||isempty(version), version='bs-known-v2.0'; end
 if isstring(version)&&isscalar(version), version=char(version); end
 if ~ischar(version)||size(version,1)~=1

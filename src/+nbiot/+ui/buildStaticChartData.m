@@ -1,5 +1,6 @@
 function data=buildStaticChartData(result)
 %BUILDSTATICCHARTDATA Derive explicit per-window diagnostics for completed UI results.
+%   Данные графиков по окнам для GUI (ТЗ §46.9).
 required={'config','kpiTimeSeries','dataset','raLog','packetLog','observedLog','truthLog'};
 if ~isstruct(result)||~isscalar(result)||~all(isfield(result,required))|| ...
         ~isstruct(result.dataset)||~isfield(result.dataset,'targets')|| ...

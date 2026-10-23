@@ -1,5 +1,6 @@
 function budget=validateExecutionBudget(cfg,execution,numCases)
 %VALIDATEEXECUTIONBUDGET Reject unsafe launches before any output/RNG work.
+%   Проверка бюджета времени запуска. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<2 || isempty(execution), execution=struct(); end
 if nargin<3, numCases=1; end
 base=struct('profile','local-development','role','development', ...

@@ -1,5 +1,6 @@
 function [lines,hiddenCount]=formatObservedEvents(events,showZeroDetection)
 %FORMATOBSERVEDEVENTS Format base-station-observed radio events for the UI.
+%   Строки журнала событий BS для GUI (ТЗ §46.12).
 if nargin<2||isempty(showZeroDetection), showZeroDetection=false; end
 if ~islogical(showZeroDetection)||~isscalar(showZeroDetection)
     error('nbiot:ui:ObservedEventFilter', ...

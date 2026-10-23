@@ -1,5 +1,6 @@
 function result=finalizeResult(cfg,scenario,packets,attempts,observed,truth,usage,actualTick,status,stopReason,errorInfo,deviceStates)
 %FINALIZERESULT Export completed, partial and failed runs without fake drops.
+%   Сборка базового struct результата (ТЗ §47) для завершённого, частичного или неудачного прогона.
 result=struct('config',cfg,'scenario',scenario,'status',status,'stopReason',stopReason, ...
     'actualTick',actualTick,'error',errorInfo,'randomness',scenario.randomManifest);
 result.resultSchemaVersion=2;

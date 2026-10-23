@@ -1,5 +1,9 @@
 function [waveform,startOffsetSamples,kernel]=fractionalDelay(waveform,delaySamples,filterLength)
-% Full convolution; timestamp offset compensates FIR implementation latency.
+%FRACTIONALDELAY Дробная задержка сигнала FIR-фильтром windowed-sinc (ТЗ §17: timing offset).
+%   [Y, OFFSET, KERNEL] = nbiot.channel.fractionalDelay(X, DELAYSAMPLES, L).
+%   Ядро: sinc(n − дробная часть) с окном Ханна длиной L (нечётная, по умолчанию 65), сумма = 1.
+%   Y — полная свёртка; OFFSET = целая часть задержки − (L−1)/2 — сдвиг начала Y в отсчётах.
+%   При пустом X возвращает только KERNEL (так его использует RadioChannel).
 if nargin<3, filterLength=65; end
 validateattributes(delaySamples,{'numeric'},{'scalar','real','finite'});
 validateattributes(filterLength,{'numeric'},{'scalar','integer','>=',3}); assert(mod(filterLength,2)==1);

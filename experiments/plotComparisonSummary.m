@@ -1,5 +1,6 @@
 function summary=plotComparisonSummary(input,outputFolder)
 %PLOTCOMPARISONSUMMARY Summarize methods and paired differences by external ID.
+%   Графики сравнения методов и парных разностей по реализациям (ТЗ §46.9 п.11–12, §63).
 if isstruct(input)&&isscalar(input)&&isfield(input,'cases')
     cases=input.cases;
 else

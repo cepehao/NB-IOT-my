@@ -1,5 +1,6 @@
 function fig=plotSummary(result)
 %PLOTSUMMARY Figures use observed run data; no fitted success curves.
+%   Графики по данным прогона (без подгонки кривых).
 fig=figure('Name','NB-IoT Static results'); tiledlayout(2,2);
 nexttile; bar([result.kpiSummary.delivered result.kpiSummary.dropped result.kpiSummary.unfinished]);
 xticklabels({'Delivered','Dropped','Unfinished'}); ylabel('Packets'); grid on;

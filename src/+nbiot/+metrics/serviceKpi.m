@@ -1,5 +1,6 @@
 function [service,groups]=serviceKpi(ueSummary,actualTick,isComplete)
 %SERVICEKPI Summarize service outage and KPIs by existing UE dimensions.
+%   KPI обслуживания по UE и группам (indoor/outdoor, удалённость): доставка, outage (ТЗ §46.8, §46.13).
 required={'indoor','coverageClass','created','delivered','dropped', ...
     'unfinished','raAttempts','raSuccesses','raFailures','raUnfinished'};
 if ~istable(ueSummary)||~all(ismember(required,ueSummary.Properties.VariableNames))

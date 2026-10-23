@@ -1,4 +1,6 @@
 function [decode,state]=receive(cfg,rx,g,state)
+%RECEIVE Приём NPDSCH на UE: dlReceiveGrid по подкадрам, lteNPDSCHDecode, lteNDLSCHDecode с CRC.
+%   DECODE.crcError = 0 — блок принят; мягкий буфер сохраняется для повтора с тем же NDI.
 if nargin<4 || isempty(state), state=struct(); end
 nbiot.phy.requireToolbox({'lteNPDSCHDecode','lteNDLSCHDecode','lteDLChannelEstimate'});
 if ~isfield(state,'ndi') || state.ndi~=g.ndi, state=struct('ndi',g.ndi,'transport',[]); end

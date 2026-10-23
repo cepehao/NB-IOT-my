@@ -1,5 +1,6 @@
 function lines=formatLiveRadioSummary(live,selectedUeId,tickSeconds)
 %FORMATLIVERADIOSUMMARY Format presentation-only radio diagnostics for the UI.
+%   Текст живой радиодиагностики для GUI (ТЗ §46.7).
 if nargin<2, selectedUeId=NaN; end
 if nargin<3, tickSeconds=1e-3; end
 if ~isstruct(live)||~isscalar(live)|| ...

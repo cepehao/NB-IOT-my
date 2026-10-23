@@ -1,5 +1,6 @@
 function saveVariant2BudgetLedger(path,ledger)
 %SAVEVARIANT2BUDGETLEDGER Atomically save shared Stage 2/Stage 3 compute progress.
+%   Сохранение учёта вычислительного бюджета. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if ~(ischar(path)||(isstring(path)&&isscalar(path)))||~isstruct(ledger)||~isscalar(ledger)
     error('nbiot:experiments:Variant2BudgetLedger','Invalid ledger path or value.');
 end

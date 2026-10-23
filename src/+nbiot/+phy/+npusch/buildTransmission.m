@@ -1,9 +1,17 @@
 function [tx,state]=buildTransmission(cfg,g,bits,state)
+%BUILDTRANSMISSION Waveform NPUSCH для назначения G (ТЗ §20 п.1–2): Msg3, данные или ACK.
+%   [TX, STATE] = buildTransmission(CFG, G, BITS, STATE)
+%   Формат 1 (Data): канальное кодирование lteNULSCH с CRC, турбо-код, rate matching под RV;
+%   формат 2 (Control): 1 бит UCI, без CRC. Затем по слотам 0,5 мс: символы lteNPUSCH, опорные
+%   DM-RS lteNPUSCHDRS, SC-FDMA lteSCFDMAModulate (960 отсчётов на слот при 1,92 МГц).
+%   BITS — int8 0/1, длина = TBS профиля (бит). Повторы NRep чередуют RV: g.rv и 2−g.rv (TS 36.213).
+%   STATE — состояние кодера для HARQ (NDI, RV).
 if nargin<4, state=[]; end
 nbiot.phy.requireToolbox({'lteNULSCH','lteNPUSCH','lteNPUSCHDRS','lteSCFDMAModulate'});
 [ue,chs]=nbiot.phy.npusch.configure(cfg,g); p=g.profile;
 assert(numel(bits)==p.tbs,'nbiot:phy:TBS','Payload length must equal transport block size.');
 estate=struct('SlotIdx',0); block=0; nslots=p.nru*p.nulSlots*p.repetitions;
+% Число слотов = NRU · NULSlots · NRep; буфер на всю передачу.
 wave=complex(zeros(nslots*960,1));
 [~,info]=lteNPUSCHIndices(ue,chs);
 if strcmp(p.format,'Data')
@@ -12,6 +20,7 @@ if strcmp(p.format,'Data')
 else
     rv=[0 0]; cws=lteNULSCH(bits); cws=[cws cws];
 end
+% Абсолютный номер слота задаёт NFrame/NSlot — от них зависят скремблирование и DM-RS.
 for s=0:nslots-1
     absolute=2*g.startTick+s; ue.NSlot=mod(absolute,20); ue.NFrame=floor(absolute/20);
     chs.SlotIdx=estate.SlotIdx; chs.RV=rv(mod(block,2)+1);

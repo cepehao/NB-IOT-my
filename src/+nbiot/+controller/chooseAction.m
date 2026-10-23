@@ -1,5 +1,14 @@
 function action=chooseAction(method,estimate,bsState,currentAction,policyConfig)
-%CHOOSEACTION Propose a bounded action from one recent, validated load estimate.
+%CHOOSEACTION Решение контроллера по оценке нагрузки (ТЗ §23–25): выбор из допустимого множества.
+%   ACTION = chooseAction(METHOD, ESTIMATE, BSSTATE, CURRENTACTION, POLICY)
+%   METHOD: 'Static' (ничего не меняет) | 'Adaptive-P' | 'Adaptive-RA/DT'.
+%   ESTIMATE — ML-оценка нагрузки (meanRaUe — среднее число UE в фазе RA) по закрытому окну,
+%   которое должно заканчиваться ровно на текущем тике (иначе 'stale-window').
+%   Правило: уровень = первый, у которого оценка <= порога (пороги возрастают):
+%     Adaptive-P     — меньше P при росте нагрузки (ТЗ §24), доля RA остаётся 10 %;
+%     Adaptive-RA/DT — больше доля RA при росте нагрузки (ТЗ §25), P = 1.
+%   ACTION.reason: 'load-threshold' — предложено изменение; иначе причина, почему действия нет
+%   (static, no-prior-window, not-decision-boundary, invalid-estimate, stale-window, after-horizon).
 if nargin<5||isempty(policyConfig), policyConfig=adaptiveDefaults(); end
 method=char(string(method));
 allowed={'Static','Adaptive-P','Adaptive-RA/DT'};
@@ -51,12 +60,14 @@ action.effectiveTick=double(bsState.tick);
 action.reason='load-threshold';
 end
 
+%SELECTLEVEL Уровень действия для оценки нагрузки по возрастающим порогам.
 function value=selectLevel(loadEstimate,thresholds,levels)
 index=find(loadEstimate<=thresholds,1,'first');
 if isempty(index), index=numel(levels); end
 value=levels(index);
 end
 
+%VALIDATEACTION Текущее действие: P в [0,1], доля RA в (0,1).
 function validateAction(action)
 if ~isstruct(action)||~isscalar(action)|| ...
         ~all(isfield(action,{'accessProbability','raShare'}))
@@ -69,6 +80,7 @@ if ~isnumeric(p)||~isscalar(p)||~isfinite(p)||p<0||p>1|| ...
 end
 end
 
+%VALIDATEPOLICY Полнота и корректность политики (окно, базовые значения, пороги, уровни, максимум).
 function validatePolicy(policy)
 required={'windowTicks','staticAccessProbability','staticRaShare', ...
     'accessLoadThresholds','accessProbabilityLevels','raLoadThresholds', ...
@@ -88,6 +100,7 @@ validateLevels(policy.accessLoadThresholds,policy.accessProbabilityLevels,-1);
 validateLevels(policy.raLoadThresholds,policy.raShareLevels,1);
 end
 
+%VALIDATELEVELS Пороги возрастают; уровни упорядочены (P — по убыванию, доля RA — по возрастанию).
 function validateLevels(thresholds,levels,direction)
 if ~isnumeric(levels)||~isrow(levels)||isempty(levels)||any(~isfinite(levels))|| ...
         any(direction*diff(levels)<=0)||~isnumeric(thresholds)|| ...

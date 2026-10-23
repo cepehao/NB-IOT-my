@@ -1,5 +1,6 @@
 function verifyModelAcceptanceRuntimeIdentity(accepted,currentSourceSha256,currentCalibrationSha256)
 %VERIFYMODELACCEPTANCERUNTIMEIDENTITY Compare active code/calibration to evidence.
+%   Сверка текущего кода и калибровки с записью допуска модели. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 try
     required={'sourceSha256','calibrationSha256'};
     if ~isstruct(accepted)||~isscalar(accepted)||~all(isfield(accepted,required))

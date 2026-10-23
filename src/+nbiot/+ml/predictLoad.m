@@ -1,5 +1,9 @@
 function estimate=predictLoad(bundleOrFile,observationRow,publicLimits)
-%PREDICTLOAD Predict meanRaUe from one complete BS observation window.
+%PREDICTLOAD ML-оценка нагрузки (meanRaUe) по одной строке признаков закрытого окна (ТЗ §21, §23).
+%   ESTIMATE = predictLoad(BUNDLE, OBSERVATIONROW, LIMITS). Столбцы строки должны точно совпадать с
+%   порядком ключей и признаков модели. Пропуски (NaN) заменяются медианой обучения, признаки
+%   стандартизуются, затем predict модели. Оценка вне [LIMITS.minimum, LIMITS.maximum] или
+%   нечисловая — valid = false (контроллер тогда ничего не меняет).
 bundle=nbiot.ml.validateModelBundle(bundleOrFile);
 if ~istable(observationRow)||height(observationRow)~=1
     error('nbiot:ml:Observation','Supply exactly one named BS observation row.');

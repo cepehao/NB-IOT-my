@@ -1,4 +1,7 @@
 function tx=buildTransmission(cfg,g,dci)
+%BUILDTRANSMISSION Waveform NPDCCH с DCI (ТЗ §19): упаковка полей DCI (packDci, 23 бита),
+%   кодирование с CRC, маскированным RNTI (lteDCIEncode), символы lteNPDCCH по подкадрам G.ticks
+%   с повторами, NRS в каждом подкадре, OFDM-модуляция (1920 отсчётов на подкадр).
 nbiot.phy.requireToolbox({'lteNPDCCH','lteDCIEncode','lteNRS','lteSCFDMAModulate'});
 [enb,chs]=nbiot.phy.dlConfig(cfg,g,true);
 [~,info]=lteNPDCCHIndices(enb,chs);

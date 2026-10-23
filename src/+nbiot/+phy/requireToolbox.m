@@ -1,4 +1,6 @@
 function requireToolbox(names)
+%REQUIRETOOLBOX Проверяет наличие функций LTE Toolbox NAMES (по умолчанию — все, что использует PHY).
+%   Ошибка nbiot:phy:MissingToolbox с именем отсутствующей функции (CLAUDE.md правило 3).
 if nargin<1
     names={'lteNPRACH','lteNPRACHInfo','lteNPRACHDetect','lteNPUSCH','lteNPUSCHIndices',...
         'lteNPUSCHDRS','lteNPUSCHDRSIndices','lteNULSCH','lteNULSCHDecode','lteNPUSCHDecode',...

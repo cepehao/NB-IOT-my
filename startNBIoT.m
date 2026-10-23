@@ -1,5 +1,7 @@
 function [app,report]=startNBIoT(mode)
 %STARTNBIOT Open the demo or run the installation check.
+%   Точка входа: startNBIoT — GUI-демо; startNBIoT('check') — проверка MATLAB, LTE Toolbox,
+%   калибровки и записи в results/.
 % startNBIoT; startNBIoT('check');
 if nargin<1, mode='demo'; end
 if ~(ischar(mode)||(isstring(mode)&&isscalar(mode))) || ...

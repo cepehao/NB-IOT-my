@@ -1,5 +1,6 @@
 function acceptance=verifyStage2AcceptanceForLoadProbe(path,root,calibrationFile,registrySnapshotFile)
 %VERIFYSTAGE2ACCEPTANCEFORLOADPROBE Validate Stage 2 evidence before new load work.
+%   Проверка результатов Stage 2 перед нагрузочными прогонами. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<2||isempty(root), root=fileparts(fileparts(mfilename('fullpath'))); end
 if nargin<3||isempty(calibrationFile)
     calibrationFile=fullfile(root,'results','nprach-calibration.mat');

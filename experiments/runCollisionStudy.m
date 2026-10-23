@@ -1,5 +1,6 @@
 function rows=runCollisionStudy(calibrationFile)
 %RUNCOLLISIONSTUDY Equal/different indices and near-far, always real waveforms.
+%   Исследование коллизий на реальных waveform (ТЗ §34–35): одинаковые/разные преамбулы, near-far.
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();
 if nargin<1, calibrationFile=fullfile(root,'results','nprach-calibration.mat'); end
 rows={};

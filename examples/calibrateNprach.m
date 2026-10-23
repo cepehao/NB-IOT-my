@@ -1,5 +1,7 @@
 function report=calibrateNprach(cfg,outputFile,options)
 % Expensive offline calibration: 20k fit windows plus fresh 20k validations.
+%   Калибровка порога детектора NPRACH по целевой вероятности ложной тревоги на окнах только с шумом;
+%   результат — results/nprach-calibration.mat (обязателен для запуска).
 if nargin<1, cfg=nbiot.config.defaultConfig(); end
 if nargin<2, outputFile=fullfile(cfg.logging.outputFolder,'nprach-calibration.mat'); end
 if nargin<3, options=struct(); end

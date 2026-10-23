@@ -1,5 +1,6 @@
 function metrics=comparisonKpis(kpiSummary,method)
 %COMPARISONKPIS Return the stable per-run KPI columns used by comparisons.
+%   Набор KPI одного прогона для парного сравнения методов (ТЗ §27, §63).
 if nargin<1||isempty(kpiSummary), kpiSummary=struct(); end
 if nargin<2, method='Static'; end
 if ~isstruct(kpiSummary)||~isscalar(kpiSummary)

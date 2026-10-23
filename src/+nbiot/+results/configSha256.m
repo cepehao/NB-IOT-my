@@ -1,5 +1,6 @@
 function hex=configSha256(cfg,canonicalOrder)
 %CONFIGSHA256 Hash a run configuration independently of its output location.
+%   SHA-256 конфигурации без пути вывода — идентичность прогона для воспроизводимости.
 % Default preserves schema-1 hashes. Schema 2 explicitly selects canonical order.
 if nargin<2, canonicalOrder=false; end
 if isfield(cfg,'logging') && isfield(cfg.logging,'outputFolder')

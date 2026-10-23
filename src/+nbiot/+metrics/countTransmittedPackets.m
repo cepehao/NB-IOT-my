@@ -1,5 +1,6 @@
 function count=countTransmittedPackets(journal,actualTick)
 %COUNTTRANSMITTEDPACKETS Count unique packets with a started NPUSCH data emission.
+%   Число пакетов, у которых началась передача данных по NPUSCH (для GUI, ТЗ §46.6).
 validateattributes(actualTick,{'numeric'},{'scalar','real','finite','integer','nonnegative'});
 if ~isstruct(journal)||(~isempty(journal)&&~all(isfield(journal,{'tick','kind','fields'})))
     error('nbiot:metrics:TransmittedPacketCount','The transmission journal has an unsupported format.');

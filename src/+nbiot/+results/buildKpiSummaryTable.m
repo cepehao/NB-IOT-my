@@ -1,5 +1,6 @@
 function summary=buildKpiSummaryTable(result)
 %BUILDKPISUMMARYTABLE Flatten final scalar KPIs into one CSV-friendly row.
+%   Итоговые скалярные KPI одной строкой таблицы (для CSV, ТЗ §46.14).
 required={'status','config','kpiSummary'};
 if ~isstruct(result)||~isscalar(result)||~all(isfield(result,required))|| ...
         ~isstruct(result.kpiSummary)||~isscalar(result.kpiSummary)

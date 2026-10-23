@@ -1,5 +1,15 @@
 classdef ResourceCalendar < handle
+    %RESOURCECALENDAR Календари ресурсов UL и DL и квоты RA/DT (ТЗ §25–26; docs/model-profile.md).
+    %   UL: сетка 2 полуподкадра на тик (0,5 мс) × 48 тонов по 3,75 кГц (= 180 кГц).
+    %   DL: 1 подкадр 180 кГц × 1 мс на тик; обязательные подкадры (NPSS, NSSS, NPBCH, SIB1-NB)
+    %   недоступны (mandatoryMask). Ячейка: 0 — свободна, 1 — занята фазой RA, 2 — фазой DT.
+    %   Квоты: в каждом окне cfg.policy.windowTicks (500 мс) отдельно в UL и DL доля RA
+    %   floor(raShare·доступно) (Static 10 %), DT — остаток. Заимствования между фазами нет.
+    %   RA включает NPRACH, RAR, Msg3, Msg4 и их управление; DT — данные, их grants и квитанции.
+    %   Замечание: при Static в DL на окно ≈ 37 подкадров RA, а RAR/Msg4 занимает ≈ 4 подкадра —
+    %   это ограничивает число завершаемых процедур RA (к анализу на этапе 3 ROADMAP).
     properties (SetAccess=private)
+        % mandatoryMask(durationTicks×1) — обязательные DL-подкадры; durationTicks — горизонт.
         mandatoryMask
         durationTicks
     end
@@ -7,12 +17,16 @@ classdef ResourceCalendar < handle
         cfg
         ul
         dl
+        % Тики DL, доступные для поиска NPDCCH, и префиксные суммы для быстрого поиска.
         monitoringDlTicks
         monitoringDlPrefix
+        % Доля RA по каждому окну 500 мс (Adaptive-RA/DT меняет её с границы окна).
         windowShares
+        % Все выданные резервирования (для пересчёта и отчёта).
         records = struct('direction',{},'phase',{},'ticks',{},'frequencyStartHz',{},'bandwidthHz',{},'grantId',{})
     end
     methods
+        %RESOURCECALENDAR Пустые календари на горизонт cfg.simulation.durationTicks.
         function obj=ResourceCalendar(cfg)
             obj.cfg=cfg; obj.durationTicks=cfg.simulation.durationTicks;
             obj.mandatoryMask=nbiot.scheduler.mandatoryDlMask(obj.durationTicks,cfg.cell.cellId);
@@ -23,9 +37,11 @@ classdef ResourceCalendar < handle
             obj.windowShares=repmat(cfg.policy.raShare,1,windowCount);
             obj.ul=zeros(2*obj.durationTicks,48,'uint8'); obj.dl=zeros(obj.durationTicks,1,'uint8');
         end
+        %CANRESERVE Поместятся ли планы PLANS (без занятости и в пределах квот).
         function ok=canReserve(obj,plans)
             [ok,~,~]=obj.check(plans);
         end
+        %MONITORINGTICKS До 4 ближайших доступных DL-подкадров начиная с BASETICK (кандидаты поиска NPDCCH).
         function ticks=monitoringTicks(obj,baseTick)
             assert(isscalar(baseTick) && baseTick>=0 && baseTick==fix(baseTick));
             if baseTick>=obj.durationTicks, ticks=zeros(1,0); return; end
@@ -34,6 +50,7 @@ classdef ResourceCalendar < handle
             if first>last, ticks=zeros(1,0); return; end
             ticks=obj.monitoringDlTicks(first:last);
         end
+        %RESERVETRANSACTION Атомарно резервирует все планы PLANS (grant + передача + ACK) или ничего.
         function ok=reserveTransaction(obj,plans)
             [ok,u,d]=obj.check(plans);
             if ok
@@ -41,6 +58,8 @@ classdef ResourceCalendar < handle
                 for k=1:numel(plans), obj.records(end+1)=obj.canonical(plans(k)); end
             end
         end
+        %APPLYSHAREFROM Новая доля RA RASHARE с окна, начинающегося в EFFECTIVETICK (Adaptive-RA/DT).
+        %   Отказ, если уже выданные назначения не укладываются в новые квоты.
         function applied=applyShareFrom(obj,effectiveTick,raShare)
             applied=false; windowTicks=obj.cfg.policy.windowTicks;
             if ~isnumeric(effectiveTick)||~isscalar(effectiveTick)||~isfinite(effectiveTick)|| ...
@@ -54,10 +73,12 @@ classdef ResourceCalendar < handle
             if ~obj.reservationsFit(proposed), return; end
             obj.windowShares=proposed; applied=true;
         end
+        %ISFREE Свободны ли все ячейки плана PLAN.
         function ok=isFree(obj,plan)
             [rows,cols,direction]=obj.indices(plan);
             if direction==0, ok=~any(obj.ul(rows,cols)~=0,'all'); else, ok=~any(obj.dl(rows)~=0|obj.mandatoryMask(rows)); end
         end
+        %RELEASEUNSTARTED Снимает ещё не начавшиеся резервирования GRANTIDS и перестраивает календари.
         function releaseUnstarted(obj,grantIds,now)
             keep=true(1,numel(obj.records));
             for i=1:numel(obj.records)
@@ -70,6 +91,7 @@ classdef ResourceCalendar < handle
                 if d==0, obj.ul(r,c)=phase; else, obj.dl(r)=phase; end
             end
         end
+        %WINDOWOCCUPANCY Доли занятости RA и DT в UL и DL для закрытого окна [FIRST, LAST) — признаки датасета.
         function occupancy=windowOccupancy(obj,first,last)
             windowTicks=obj.cfg.dataset.windowTicks;
             validFirst=isnumeric(first)&&isreal(first)&&isscalar(first)&&isfinite(first)&& ...
@@ -103,6 +125,7 @@ classdef ResourceCalendar < handle
                 'ulRaOccupancy',ulRa,'ulDtOccupancy',ulDt, ...
                 'dlRaOccupancy',dlRa,'dlDtOccupancy',dlDt);
         end
+        %USAGE Таблица по окнам и направлениям: доступно, квоты RA/DT, занято RA/DT, в ед. и в Гц·с (ТЗ §27).
         function result=usage(obj)
             rows={}; w=obj.cfg.policy.windowTicks;
             for first=0:w:obj.durationTicks-1
@@ -119,6 +142,7 @@ classdef ResourceCalendar < handle
         end
     end
     methods (Access=private)
+        %RESERVATIONSFIT Укладываются ли текущие резервирования в квоты SHARES по всем окнам.
         function fits=reservationsFit(obj,shares)
             fits=false; w=obj.cfg.policy.windowTicks;
             for first=0:w:obj.durationTicks-1
@@ -134,6 +158,7 @@ classdef ResourceCalendar < handle
             end
             fits=true;
         end
+        %CHECK Пробное резервирование: без конфликтов ячеек и с соблюдением квот RA/DT во всех окнах.
         function [ok,u,d]=check(obj,plans)
             u=obj.ul; d=obj.dl; ok=false;
             if isempty(plans), ok=true; return; end
@@ -157,6 +182,7 @@ classdef ResourceCalendar < handle
             end
             ok=true;
         end
+        %INDICES Строки/столбцы календаря для плана P: UL — полуподкадры × тоны 3,75 кГц, DL — подкадры.
         function [rows,cols,d]=indices(obj,p)
             if isnumeric(p.direction), d=double(p.direction); else, d=find(strcmpi(p.direction,{'UL','DL'}),1)-1; end
             assert(isscalar(d) && any(d==[0 1]));

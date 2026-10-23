@@ -1,5 +1,6 @@
 function manifest=prepareExternalRun(options)
 %PREPAREEXTERNALRUN Create a verified local handoff draft without running simulations.
+%   Подготовка пакета для запуска на внешней машине. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 required={'projectRoot','outputFolder','calibrationFile','registryFile', ...
     'caseMatrix','idAssignments'};
 if ~isstruct(options)||~isscalar(options)||~all(isfield(options,required))

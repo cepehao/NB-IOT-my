@@ -1,6 +1,8 @@
 function [delay,measurement]=estimateTiming(cfg,rx,g,ue,chs)
-% Received DM-RS correlation, restricted to actual available public margins.
-% Toolbox offsets/correlation are zero-based sample delays modulo one slot.
+%ESTIMATETIMING Оценка задержки приёма NPUSCH по корреляции с DM-RS (ТЗ §17: timing offset).
+%   Поиск в ±64 отсчётах (cfg.phy.ulTimingSearchSamples, если задан) вокруг номинального начала,
+%   в пределах доступного окна приёма. DELAY — задержка в отсчётах (может быть отрицательной);
+%   MEASUREMENT — пик, отношение пик/среднее, диапазон поиска. Истинная задержка не используется.
 nbiot.phy.requireToolbox({'lteULFrameOffsetNPUSCH'});
 nominal=g.startTick*1920; count=g.profile.nru*g.profile.nulSlots*g.profile.repetitions*960;
 limit=64;

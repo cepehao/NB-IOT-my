@@ -1,5 +1,6 @@
 function data=buildLoadDataset(options)
 %BUILDLOADDATASET Build an explicit saved-data dataset without simulation.
+%   Сборка датасета ML из сохранённых прогонов (ТЗ §22) без новой симуляции.
 required={'resultFiles','splitManifest','outputFolder'};
 allowed=[required,{'purpose','registryFile'}];
 if nargin<1||~isstruct(options)||~isscalar(options)||~all(isfield(options,required))|| ...

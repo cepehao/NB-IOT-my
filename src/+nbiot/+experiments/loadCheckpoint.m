@@ -1,5 +1,6 @@
 function [sim,info]=loadCheckpoint(folder,expectedIdentity,execution)
 %LOADCHECKPOINT Verify identity and hashes, then restore the newest valid state.
+%   Загрузка последнего корректного чекпоинта долгого прогона.
 totalClock=tic;
 timing=struct('hashSeconds',0,'loadSeconds',0,'restoreSeconds',0,'totalSeconds',0,'bytes',0);
 if nargin<3, execution=struct(); end

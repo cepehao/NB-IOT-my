@@ -1,5 +1,6 @@
 function text=formatResultSummary(result)
 %FORMATRESULTSUMMARY Format the saved result metrics for the GUI summary.
+%   Итоговая сводка прогона для GUI (ТЗ §46.13).
 required={'status','config','kpiSummary'};
 if ~isstruct(result)||~isscalar(result)||~all(isfield(result,required))|| ...
         ~isfield(result.config,'simulation')||~isfield(result.config.simulation,'numUE')|| ...

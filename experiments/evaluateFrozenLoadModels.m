@@ -1,5 +1,6 @@
 function report=evaluateFrozenLoadModels(options)
 %EVALUATEFROZENLOADMODELS Evaluate frozen artifacts without fitting or reselection.
+%   Оценка зафиксированной модели на test без переобучения (ТЗ §21, §40).
 try
     report=runEvaluation(options);
 catch exception

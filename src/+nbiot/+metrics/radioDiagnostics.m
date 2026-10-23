@@ -1,5 +1,7 @@
 function diagnostics=radioDiagnostics(truthEvents,observedEvents,receptionEvents,options)
 %RADIODIAGNOSTICS Compare post-reception observations with simulation truth.
+%   Радиодиагностика прогона (ТЗ §15–17, §35–36): сопоставление наблюдений приёмника с истиной —
+%   detection/miss/false alarm, коллизии, capture, ошибки оценок задержки и CFO, SINR компонент.
 % Truth is joined only after the detector/receiver has produced its result.
 validateEvents(truthEvents,'truthEvents');
 validateEvents(observedEvents,'observedEvents');

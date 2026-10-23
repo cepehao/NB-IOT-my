@@ -1,5 +1,8 @@
 function bank=templates(cfg)
-% Cache all allowed starting tones, never a shortlist of active transmitters.
+%TEMPLATES Банк из 12 шаблонов преамбул NPRACH (NInit 0..11), сформированных lteNPRACH (ТЗ §14 п.3).
+%   Из буфера периода вырезается активная часть: 4 группы × (CP + 5 символов) = 10 752 отсчёта при
+%   1,92 МГц, нормированная на единичную мощность. Кэшируются все допустимые преамбулы, а не только
+%   активные: детектор не должен знать, кто передавал.
 persistent cached key
 k=[cfg.phy.cellId cfg.ra.periodTicks cfg.ra.numSubcarriers cfg.ra.repetitions cfg.ra.format];
 if isempty(cached) || ~isequal(key,k)

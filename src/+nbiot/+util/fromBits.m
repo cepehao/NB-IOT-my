@@ -1,5 +1,5 @@
 function value = fromBits(bits)
-%FROMBITS MSB-first binary vector to uint64.
+%FROMBITS Двоичный вектор (старший бит первым, до 64 бит) → uint64.
 validateattributes(bits,{'numeric','logical'},{'vector','nonempty','numel',numel(bits)});
 if numel(bits)>64 || any(bits~=0 & bits~=1)
     error('nbiot:protocol:Bits','Expected at most 64 binary bits.');

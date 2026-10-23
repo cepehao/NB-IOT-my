@@ -1,5 +1,6 @@
 function lines=formatUeDetail(detail)
 %FORMATUEDETAIL Format one device's current simulation state for the UI.
+%   Карточка выбранного UE (ТЗ §46.10): координаты, расстояние, мощность, состояние, попытки.
 required={'ueId','xM','yM','distanceM','indoor','receivedPowerUlDbm', ...
     'receivedPowerDlDbm','raAttempts','state','queueLength'};
 if ~isstruct(detail)||~isscalar(detail)||~all(isfield(detail,required))

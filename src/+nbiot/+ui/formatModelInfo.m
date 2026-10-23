@@ -1,5 +1,6 @@
 function lines=formatModelInfo(bundle)
 %FORMATMODELINFO Describe model metadata available to the GUI.
+%   Текст о загруженной ML-модели (ТЗ §46.4).
 required={'modelName','schemaVersion','targetName','featureNames', ...
     'trainingIds','validationIds','testIds','seed','status','dataKind'};
 if ~isstruct(bundle)||~isscalar(bundle)||~all(isfield(bundle,required))

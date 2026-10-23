@@ -1,4 +1,6 @@
 function [enb,chs]=dlConfig(cfg,grant,control)
+%DLCONFIG Параметры LTE Toolbox для DL-назначения GRANT: ENB (соты, кадр/подкадр по тику) и CHS
+%   (CONTROL=true — NPDCCH: NCCE, повторы, RNTI; иначе NPDSCH: число подкадров, повторы, RNTI).
 enb=struct('NNCellID',cfg.phy.cellId,'NBRefP',1,'OperationMode','Standalone',...
     'NFrame',floor(grant.startTick/10),'NSubframe',mod(grant.startTick,10),...
     'Windowing',0);

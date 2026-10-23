@@ -1,5 +1,5 @@
 function bits = encodeMessage(kind,fields)
-%ENCODEMESSAGE Wire representation; no internal UE/packet/grant IDs.
+%ENCODEMESSAGE Битовое представление управляющего сообщения KIND (88 бит = TBS NPDSCH/Msg3 профиля).
 % RAR MAC PDU: BI subheader, RAPID subheader, 48-bit MAC RAR.
 % NB-IoT uses a 15-bit UL grant in the 20-bit grant field (5 reserved zeros).
 % TS36.321 6.1.5, TS36.213 16.3.3. Msg3 and receipt are research wrappers.

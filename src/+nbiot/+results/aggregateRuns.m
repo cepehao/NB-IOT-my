@@ -1,5 +1,6 @@
 function summary=aggregateRuns(results)
 %AGGREGATERUNS Uncertainty across independent runs, not correlated windows.
+%   Агрегация KPI по независимым реализациям: среднее и доверительный интервал (ТЗ §29).
 if ~iscell(results), results=num2cell(results); end
 names={'raSuccessProbability','deliveryProbability','throughputBitsPerSecond','meanDelayTicks','dataBler','ulOccupancy','dlOccupancy'};
 rows={}; successes=0; attempts=0; delivered=0; created=0;

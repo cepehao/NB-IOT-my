@@ -1,5 +1,12 @@
 function [bundles,report]=trainLoadModels(data,options)
-%TRAINLOADMODELS Fit four fixed load regressors using ID-separated groups.
+%TRAINLOADMODELS Обучение четырёх моделей оценки нагрузки (ТЗ §21, §40): линейная регрессия,
+%   дерево решений, случайный лес (bagging), градиентный бустинг (LSBoost).
+%   [BUNDLES, REPORT] = trainLoadModels(DATA, OPTIONS)
+%   DATA — собранный датасет (nbiot.dataset.assembleLoadDataset) с разбиением по реализациям.
+%   Target — meanRaUe; признаки — только наблюдения BS (featureSchema.inputNames).
+%   Предобработка обучается только на train: пропуски → медиана train, затем z-нормировка.
+%   Метрики MAE/RMSE по train/validation (и test, если не режим selection-only). Каждая модель
+%   сохраняется как bundle (модель + схема + преобразование + id выборок + seed).
 if nargin<2||isempty(options), options=mlTrainingDefaults(); end
 options=validatedOptions(options);
 [x,y,ids,groups,schema,kind,allocationsVerified]=validateTrainingData(data);
@@ -39,6 +46,8 @@ modelNames={'linearRegression','decisionTree','randomForest','gradientBoosting'}
 bundleTemplate=struct('name','','bundle',struct(),'file','','sha256','','manifestFile','');
 bundles=repmat(bundleTemplate,1,numel(modelNames));
 metricRows=cell(0,9); validationMae=nan(1,numel(modelNames)); trainingSeconds=zeros(1,numel(modelNames));
+% Воспроизводимость обучения: фиксированный seed (ТЗ §40). Нарушает правило «только потоки»
+% (глобальный rng, восстанавливается после) — исправить при доработке ML.
 oldRng=rng; restoreRng=onCleanup(@() rng(oldRng));
 rng(options.seed,'twister');
 

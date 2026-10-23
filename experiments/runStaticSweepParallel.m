@@ -1,5 +1,6 @@
 function manifest=runStaticSweepParallel(options)
 %RUNSTATICSWEEPPARALLEL Execute independent realizations on process workers.
+%   Та же серия на параллельных процессах (parfor по реализациям).
 if nargin<1, options=struct(); end
 if ~isfield(options,'numWorkers'), options.numWorkers=2; end
 if ~isnumeric(options.numWorkers) || ~isscalar(options.numWorkers) || ...

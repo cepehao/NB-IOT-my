@@ -1,5 +1,6 @@
 function meta=runStaticCase(cfg,caseFolder,provenance,runner,runtimeOptions)
 %RUNSTATICCASE Execute and commit one independent case in its own folder.
+%   Один прогон Static в отдельной папке результатов.
 root=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 addpath(root); addpath(fullfile(root,'src')); addpath(fullfile(root,'experiments')); setupProject();
 if nargin<4, runner=[]; end

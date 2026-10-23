@@ -1,5 +1,6 @@
 function metrics=loadModelEvaluationMetrics(modelFile,bundle)
 %LOADMODELEVALUATIONMETRICS Read only complete, hash-bound evaluation evidence.
+%   Загрузка проверенных метрик качества модели (MAE/RMSE по выборкам) для отображения.
 metrics=emptyMetrics();
 if ~(ischar(modelFile)||(isstring(modelFile)&&isscalar(modelFile)))|| ...
         ~isstruct(bundle)||~isscalar(bundle)|| ...

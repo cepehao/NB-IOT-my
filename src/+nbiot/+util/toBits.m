@@ -1,5 +1,5 @@
 function bits = toBits(value,width)
-%TOBITS Unsigned scalar to MSB-first int8 column, without extra toolboxes.
+%TOBITS Неотрицательное целое VALUE → столбец int8 из WIDTH бит, старший бит первым.
 validateattributes(width,{'numeric'},{'scalar','integer','>=',1,'<=',64});
 validateattributes(value,{'numeric'},{'scalar','real','finite','nonnegative'});
 if double(value)~=fix(double(value)) || (width<64 && uint64(value)>=bitshift(uint64(1),width))

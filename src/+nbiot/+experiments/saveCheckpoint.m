@@ -1,5 +1,6 @@
 function [path,timing]=saveCheckpoint(sim,folder,identity)
 %SAVECHECKPOINT Atomically publish a read-back-verified simulator snapshot.
+%   Сохранение чекпоинта симулятора с проверкой чтением.
 totalClock=tic;
 timing=struct('existingHashSeconds',0,'exportStateSeconds',0,'saveSeconds',0, ...
     'readbackSeconds',0,'hashSeconds',0,'publishSeconds',0,'totalSeconds',0,'bytes',0);

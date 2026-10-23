@@ -1,4 +1,6 @@
 function [tx,state]=buildTransmission(cfg,g,bits,state)
+%BUILDTRANSMISSION Waveform NPDSCH (ТЗ §19): RAR, Msg4 или квитанция. Кодирование lteNDLSCH (CRC 24,
+%   турбо-код), символы lteNPDSCH по подкадрам G.ticks, NRS, OFDM-модуляция. BITS — int8, длина = TBS.
 if nargin<4, state=[]; end
 nbiot.phy.requireToolbox({'lteNDLSCH','lteNPDSCH','lteNRS','lteSCFDMAModulate'});
 assert(numel(bits)==g.profile.tbs,'nbiot:phy:TBS','NPDSCH payload does not match TBS.');

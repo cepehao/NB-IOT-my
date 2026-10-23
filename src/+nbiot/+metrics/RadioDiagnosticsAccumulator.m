@@ -1,5 +1,7 @@
 classdef RadioDiagnosticsAccumulator < handle
     %RADIODIAGNOSTICSACCUMULATOR Incremental, presentation-only radio summary.
+    %   Инкрементальная радиодиагностика для GUI (ТЗ §46.7): обнаружения, коллизии, capture, SINR.
+    %   Только отображение, на модель не влияет.
     % The journal owner supplies append-only deltas. This object keeps the
     % accumulated event history by occasion and refreshes only changed ones.
     properties (Access=private)

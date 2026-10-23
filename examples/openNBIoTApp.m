@@ -1,5 +1,6 @@
 function app=openNBIoTApp(dialogs,options)
 %OPENNBIOTAPP Open the bounded local Static-mode user interface.
+%   Открывает GUI симулятора.
 % Optional DIALOGS supplies callbacks for automated UI checks. Optional
 % OPTIONS forwards an execution profile and controller configuration.
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject();

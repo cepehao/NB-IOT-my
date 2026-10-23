@@ -1,5 +1,6 @@
 function [summary,coverage]=summarizeLoadDataset(data)
 %SUMMARIZELOADDATASET Describe independent-ID and scenario coverage.
+%   Сводка датасета: число независимых реализаций, нагрузки, сценарии, покрытие выборок.
 required={'observations','rowInfo','schema','manifest'};
 if ~isstruct(data)||~isscalar(data)||~all(isfield(data,required))|| ...
         ~istable(data.observations)||~istable(data.rowInfo)|| ...

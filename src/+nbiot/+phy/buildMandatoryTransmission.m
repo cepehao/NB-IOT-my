@@ -1,5 +1,7 @@
 function tx=buildMandatoryTransmission(cfg,tick)
-% Stateless public wrapper, derives SIB1 bundle phase from absolute frame.
+%BUILDMANDATORYTRANSMISSION Обязательный DL-сигнал соты на тике TICK (NPSS, NSSS, NPBCH, SIB1-NB).
+%   Фаза пакета SIB1-NB вычисляется из абсолютного номера кадра, поэтому функция без состояния.
+%   Пустой результат — в этом подкадре обязательного сигнала нет.
 [~,kinds]=nbiot.scheduler.mandatoryDlMask(tick+1,cfg.phy.cellId);
 state=[];
 if kinds.sib1(end)

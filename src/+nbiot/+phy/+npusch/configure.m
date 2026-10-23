@@ -1,4 +1,7 @@
 function [ue,chs]=configure(cfg,g)
+%CONFIGURE Структуры UE и CHS для функций LTE Toolbox NPUSCH по назначению G.
+%   Номера поднесущих 15 кГц — из частотного сдвига назначения (или явного subcarrierSet);
+%   модуляция: Data — QPSK, Control (ACK) — BPSK; групповой скачок DM-RS включён.
 p=g.profile;
 % Calendar frequency is offset from lower edge of the 180 kHz allocation.
 tone=round(g.frequencyStartHz/15000);

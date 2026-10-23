@@ -1,5 +1,8 @@
 function app=NBIoTApp(dialogs,options)
 %NBIOTAPP Open the bounded local simulation interface.
+%   Графический интерфейс симулятора (ТЗ §46): настройки, управление расчётом, состояние, KPI,
+%   графики, журнал, сохранение/экспорт. Программный uifigure (App Designer — открытый вопрос, CLAUDE.md §7).
+%   Все расчёты — в модулях симулятора; GUI только отображает и не меняет модель.
 if nargin<1 || isempty(dialogs), dialogs=struct(); end
 if ~isstruct(dialogs) || ~isscalar(dialogs)
     error('nbiot:ui:DialogAdapter','Dialog adapters must be a scalar structure.');

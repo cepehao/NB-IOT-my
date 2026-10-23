@@ -1,5 +1,6 @@
 function progress=writeRuntimeProgress(path,update)
 %WRITERUNTIMEPROGRESS Atomic, best-effort instrumentation with segment clocks.
+%   Запись прогресса долгого прогона в файл (наблюдение за расчётом).
 % Elapsed keys use makeValidName(canonical phase), e.g. result_finalizing;
 % phase and phaseContext retain their original strings. No scientific RNG use.
 persistent segments

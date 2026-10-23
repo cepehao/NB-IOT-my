@@ -1,6 +1,13 @@
 classdef PacketStore < handle
-    %PACKETSTORE BS delivery and UE queue completion are independent facts.
+    %PACKETSTORE Пакеты и очереди UE (ТЗ §11, §12, §30) — источник истины о доставке.
+    %   Статусы пакета: pending → delivered (все фрагменты приняты BS, CRC OK — ТЗ §27.2) |
+    %   dropped (overflow — очередь полна; ra_limit — 8 попыток RA; lifetime; progress_timeout) |
+    %   unfinished (не завершён к горизонту). Баланс: created = delivered + dropped + unfinished.
+    %   Доставка на BS и завершение у UE (localFinished, после квитанции) — разные факты и метки времени.
+    %   Очередь UE (FIFO, лимит cfg.traffic.queueLimit) включает обслуживаемый пакет.
     properties (SetAccess=private)
+        % packets — все пакеты реализации: id, UE, номер, биты, фрагменты TB (blocks), принятые фрагменты,
+        % статус и причина, тики создания/доставки/завершения, число попыток RA.
         packets
         counters=struct('created',0,'delivered',0,'dropped',0,'unfinished',0,'deliveredPayloadBits',0)
     end
@@ -11,11 +18,14 @@ classdef PacketStore < handle
         sequences
     end
     methods
+        %PACKETSTORE Пустое хранилище для конфигурации CFG.
         function obj=PacketStore(cfg)
             obj.cfg=nbiot.config.validateConfig(cfg); obj.queues=cell(cfg.simulation.numUE,1);
             obj.sequences=cell(cfg.simulation.numUE,1); obj.index=containers.Map('KeyType','uint32','ValueType','double');
             obj.packets=struct('packetId',{},'ueId',{},'sequence',{},'payloadBits',{},'blocks',{},'map',{},'received',{},'status',{},'reason',{},'createdTick',{},'deliveredTick',{},'terminalTick',{},'attemptCount',{},'ueConfirmed',{},'localFinished',{},'localFinishedTick',{});
         end
+        %ENQUEUE Ставит поступивший пакет A в очередь UE; при переполнении — сразу dropped/overflow.
+        %   Пакет режется на фрагменты TB 256 бит (segmentPacket). ACCEPTED — принят ли в очередь.
         function accepted=enqueue(obj,a)
             id=uint32(a.packetId); ue=double(a.ueId); obj.validateUE(ue);
             validateattributes(a.packetId,{'numeric'},{'scalar','integer','positive','<=',2^32-1});
@@ -29,15 +39,18 @@ classdef PacketStore < handle
             if accepted, obj.queues{ue}(end+1)=id; else, p.status='dropped'; p.reason='overflow'; p.terminalTick=double(a.createdTick); p.localFinished=true; p.localFinishedTick=double(a.createdTick); obj.counters.dropped=obj.counters.dropped+1; end
             obj.sequences{ue}(end+1)=double(a.sequence); obj.packets(end+1)=p; obj.index(id)=numel(obj.packets); obj.counters.created=obj.counters.created+1;
         end
+        %HEAD Номер первого пакета в очереди UE (0 — очередь пуста); QUEUELENGTH — длина очереди.
         function id=head(obj,ue)
             obj.validateUE(ue); q=obj.queues{double(ue)}; id=uint32(0); if ~isempty(q), id=q(1); end
         end
         function n=queueLength(obj,ue), obj.validateUE(ue); n=numel(obj.queues{double(ue)}); end
         function p=get(obj,id), p=obj.packets(obj.lookup(id)); end
+        %INCREMENTATTEMPT Учитывает ещё одну передачу Msg1 для пакета.
         function incrementAttempt(obj,id)
             i=obj.lookup(id); if ~strcmp(obj.packets(i).status,'pending'), error('nbiot:traffic:TerminalPacket','Cannot attempt terminal packet'); end
             obj.packets(i).attemptCount=obj.packets(i).attemptCount+1;
         end
+        %EXPIRELIFETIME Отбрасывает пакеты старше cfg.traffic.lifetimeTicks; возвращает их номера.
         function expired=expireLifetime(obj,tick)
             % Called after all receive events at the same tick are processed.
             obj.tick(tick); expired=uint32([]);
@@ -49,6 +62,7 @@ classdef PacketStore < handle
                 end
             end
         end
+        %LOCALFINISH Пакет завершён у UE (удаляется из очереди). CONFIRMED — получена квитанция доставки.
         function localFinish(obj,id,tick,confirmed)
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i);
             if tick<double(p.createdTick), error('nbiot:traffic:InvalidTime','Completion precedes arrival'); end
@@ -58,6 +72,7 @@ classdef PacketStore < handle
             p.localFinished=true; p.localFinishedTick=double(tick); p.ueConfirmed=confirmed; obj.packets(i)=p;
             ue=double(p.ueId); obj.queues{ue}(obj.queues{ue}==p.packetId)=[];
         end
+        %MARKTERMINAL Финальный неуспешный статус ('dropped' | 'unfinished') с причиной REASON.
         function markTerminal(obj,id,status,reason,tick)
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i);
             if tick<double(p.createdTick), error('nbiot:traffic:InvalidTime','Terminal tick precedes arrival'); end
@@ -67,6 +82,8 @@ classdef PacketStore < handle
             p.status=char(status); p.reason=char(reason); p.terminalTick=double(tick); obj.packets(i)=p;
             obj.counters.(status)=obj.counters.(status)+1; obj.localFinish(id,tick,false);
         end
+        %MARKRECEIVED BS приняла фрагмент FRAGMENTINDEX пакета ID (биты BITS после CRC).
+        %   Когда собраны все фрагменты — пакет delivered, учитываются полезные биты для throughput.
         function newlyDelivered=markReceived(obj,id,fragmentIndex,bits,tick)
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i); newlyDelivered=false;
             validateattributes(fragmentIndex,{'numeric'},{'scalar','integer','>=',0,'<',numel(p.blocks)});
@@ -90,6 +107,7 @@ classdef PacketStore < handle
             end
             obj.packets(i)=p;
         end
+        %FINALIZE На горизонте все ожидающие пакеты получают статус unfinished/horizon.
         function packets=finalize(obj,tick)
             obj.tick(tick);
             for i=1:numel(obj.packets)

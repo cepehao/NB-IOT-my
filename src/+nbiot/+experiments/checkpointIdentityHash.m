@@ -1,5 +1,6 @@
 function digest=checkpointIdentityHash(identity)
 %CHECKPOINTIDENTITYHASH Stable hash for the serializable runtime identity.
+%   Хеш идентичности чекпоинта (продолжение долгого прогона).
 if ~isstruct(identity)||~isscalar(identity)
     error('nbiot:experiments:CheckpointIdentity','Checkpoint identity must be a scalar structure.');
 end

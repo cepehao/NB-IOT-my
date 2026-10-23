@@ -1,5 +1,6 @@
 function validateLoadProbeRuntime(matlabRelease,lteInfo,licenseAvailable)
 %VALIDATELOADPROBERUNTIME Check the supported local MATLAB/LTE runtime.
+%   Проверка MATLAB/LTE Toolbox перед нагрузочным прогоном.
 if nargin<3, licenseAvailable=false; end
 if ~(ischar(matlabRelease)||(isstring(matlabRelease)&&isscalar(matlabRelease)))|| ...
         ~strcmp(char(string(matlabRelease)),'2025b')

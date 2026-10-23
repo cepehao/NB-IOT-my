@@ -1,5 +1,10 @@
 function links=evaluateLinks(cfg,ue)
-%EVALUATELINKS Calculate per-UE reference link budgets before small-scale fading.
+%EVALUATELINKS Опорный link budget по UE без быстрых замираний (ТЗ §13, проверка §32).
+%   LINKS = nbiot.channel.evaluateLinks(CFG, UE). Для каждого UE в полосе 180 кГц:
+%     receivedPowerUlDbm = P_UE − PL,  receivedPowerDlDbm = P_BS − PL   (дБм);
+%     шум N = 10·lg(k·T·10^(NF/10)·B) + 30 (дБм), NF BS 5 дБ / UE 7 дБ;
+%     referenceSnrUlDb / referenceSnrDlDb = P_rx − N (дБ).
+%   Используется для таблиц и GUI; решения приёмников по нему НЕ принимаются (только waveform).
 cfg=nbiot.config.validateConfig(cfg);
 if ~isstruct(ue)||~isfield(ue,'ueId')||~isfield(ue,'pathLossDb')
     error('nbiot:channel:InvalidLinkInput', ...

@@ -1,5 +1,6 @@
 function row=analyzeCollisionTrial(c,cfg,r,trace)
 %ANALYZECOLLISIONTRIAL Validate one saved physical collision trial and KPI row.
+%   Разбор одного физического опыта коллизии (ТЗ §34–35): строка KPI и проверка результата.
 a=r.raLog; first=a([a.occasionId]==1); successful=a(strcmp({a.status},'success'));
 chainValidated=true;
 for k=1:numel(successful)

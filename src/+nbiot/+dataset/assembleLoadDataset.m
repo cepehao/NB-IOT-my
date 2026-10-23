@@ -1,5 +1,7 @@
 function data=assembleLoadDataset(resultFiles,splitManifest)
 %ASSEMBLELOADDATASET Verify saved cases and align closed BS/target windows.
+%   Сборка датасета ML из сохранённых прогонов (ТЗ §22): проверка файлов, выравнивание окон
+%   признаков BS и target, разбиение по реализациям.
 % Reads only MAT snapshots and CSV exports, never the full waveform result.
 files=cellstr(string(resultFiles));
 if isempty(files)||~isvector(files), error('nbiot:dataset:Inputs','Supply explicit MAT result files.'); end

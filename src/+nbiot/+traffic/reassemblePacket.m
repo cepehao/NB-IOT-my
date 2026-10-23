@@ -1,5 +1,7 @@
 function [payload,map]=reassemblePacket(blocks)
-%REASSEMBLEPACKET Reject malformed, missing or inconsistent wrappers.
+%REASSEMBLEPACKET Сборка пакета из принятых TB 256 бит (обратное к segmentPacket).
+%   Проверяет номер пакета, индексы, число фрагментов, длину данных и нулевой padding;
+%   при нарушении — nbiot:traffic:MalformedPacket.
 if ~iscell(blocks)||isempty(blocks), error('nbiot:traffic:MalformedPacket','Nonempty TB cell array required'); end
 count=numel(blocks); payload=cell(count,1); valid=zeros(count,1); sequence=[];
 for k=1:count

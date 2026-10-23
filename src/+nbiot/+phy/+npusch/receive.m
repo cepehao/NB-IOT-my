@@ -1,7 +1,18 @@
 function [decode,state]=receive(cfg,rx,g,state)
+%RECEIVE Приём NPUSCH на BS (ТЗ §20 п.4–7, §39): синхронизация, CFO, оценка канала, декодирование, CRC.
+%   [DECODE, STATE] = receive(CFG, RX, G, STATE)
+%   1) задержка по DM-RS (estimateTiming); 2) CFO по фазе DM-RS между соседними слотами (шаг 0,5 мс),
+%      ограничение ±cfoLimitHz; 3) по слотам: SC-FDMA демодуляция, оценка канала
+%      lteULChannelEstimateNPUSCH, демодуляция lteNPUSCHDecode; 4) по окончании блока —
+%      lteNULSCHDecode с мягким объединением HARQ (STATE.transport сохраняется при том же NDI).
+%   DECODE: decodedBits, hasCrc (Data — true, ACK — false), crcError (0 — успех; NaN для ACK),
+%   измерения (CFO, шум, тайминг) и для ACK — признак uciDetected.
+%   Детектор UCI: ACK засчитывается, только если когерентны и DM-RS, и мягкие биты кодового
+%   слова — иначе чужая передача могла бы дать ложный ACK.
 if nargin<4 || isempty(state), state=struct(); end
 nbiot.phy.requireToolbox({'lteNPUSCHDecode','lteNULSCHDecode','lteULChannelEstimateNPUSCH'});
 [ue,chs]=nbiot.phy.npusch.configure(cfg,g); p=g.profile;
+% Новый NDI — новый транспортный блок: мягкий буфер HARQ сбрасывается.
 if ~isfield(state,'ndi') || state.ndi~=g.ndi, state=struct('ndi',g.ndi,'transport',[]); end
 if strcmp(p.format,'Control'), state=struct('ndi',g.ndi,'transport',[]); end
 dstate=struct('SlotIdx',0); nslots=p.nru*p.nulSlots*p.repetitions; block=0;
@@ -20,6 +31,7 @@ for s=0:nslots-1
 end
 cfo=angle(products)/(2*pi*0.0005); cfo=max(-cfg.channel.cfoLimitHz,min(cfg.channel.cfoLimitHz,cfo));
 w=w.*exp(-1i*2*pi*cfo*(firstSample+(0:size(w,1)-1)')/1920000);
+% Окно оценки канала: 23 поднесущих по частоте, 1 символ по времени, линейная интерполяция.
 cec=struct('PilotAverage','UserDefined','FreqWindow',23,'TimeWindow',1,'InterpType','linear');
 % Format2 has one frequency pilot; average its three DRS symbol positions.
 if strcmp(p.format,'Control'), cec.TimeWindow=3; end

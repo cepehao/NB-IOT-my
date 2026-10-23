@@ -1,5 +1,6 @@
 function view=buildControllerDisplayData(state)
 %BUILDCONTROLLERDISPLAYDATA Format controller values for display only.
+%   Данные таблицы и графиков контроллера для GUI (ТЗ §46.11).
 required={'controllerMethod','controllerLatestEstimate','runtimeAction', ...
     'controllerLog','controllerDiagnosticTargets','tickSeconds'};
 if ~isstruct(state)||~isscalar(state)||~all(isfield(state,required))|| ...

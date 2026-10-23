@@ -1,5 +1,6 @@
 function report=benchmarkNprachGpu()
 % Offline FFT diagnostic only; production detector always retains CPU.
+%   Диагностический замер FFT детектора NPRACH на GPU (в основной модели не используется).
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(root); setupProject;
 out=fullfile(root,'results','gpu-fft'); assert(~isfolder(out),'Use fresh output'); mkdir(out);
 cfg=nbiot.config.defaultConfig(); bank=nbiot.phy.nprach.templates(cfg);

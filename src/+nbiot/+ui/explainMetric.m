@@ -1,5 +1,6 @@
 function explanation=explainMetric(key)
 %EXPLAINMETRIC Return a short Russian explanation for a displayed UI value.
+%   Пояснение к показателю для подсказки в GUI.
 explanation='Описание недоступно';
 if ~(ischar(key)&&isrow(key))&&~(isstring(key)&&isscalar(key))
     return;

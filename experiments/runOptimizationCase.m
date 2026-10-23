@@ -1,5 +1,6 @@
 function bundlePath=runOptimizationCase(bundlePath)
 %RUNOPTIMIZATIONCASE Run the fixed single-UE equivalence scenario in isolation.
+%   Эталонный прогон 1 UE для проверки эквивалентности после оптимизаций.
 if nargin<1 || ~(ischar(bundlePath) || isstring(bundlePath))
     error('nbiot:optimization:Output','Provide a new MAT bundle path.');
 end

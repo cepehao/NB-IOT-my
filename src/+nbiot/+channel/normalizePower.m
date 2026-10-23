@@ -1,5 +1,8 @@
 function [waveform,activePowerW]=normalizePower(waveform,activeRanges,txPowerDbm)
-% Normalize zero-based half-open active intervals to physical power in watts.
+%NORMALIZEPOWER Масштабирует waveform к мощности передачи TXPOWERDBM (ТЗ §13: 23 дБм).
+%   ACTIVERANGES — интервалы [a, b) с нумерацией от 0 (начало включительно, конец исключён):
+%   средняя мощность считается только по активным отсчётам, нули буфера не учитываются.
+%   Выход — сигнал в физических единицах (средняя мощность активной части = 10^((P−30)/10) Вт).
 waveform=double(waveform(:)); mask=false(size(waveform));
 validateattributes(txPowerDbm,{'numeric'},{'scalar','real','finite'});
 for k=1:size(activeRanges,1)

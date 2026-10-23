@@ -1,5 +1,6 @@
 function validateStage2ReceiverChecks(checks)
 %VALIDATESTAGE2RECEIVERCHECKS Enforce deterministic Stage 2 receiver controls.
+%   Контрольные проверки приёмника Stage 2. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 required={'condition','id','present','ownDetected','miss','falseAlarm',...
     'estimatedDelaySamples','estimatedCfoHz','actualDelaySamples','actualCfoHz'};
 if ~istable(checks)||~all(ismember(required,checks.Properties.VariableNames))

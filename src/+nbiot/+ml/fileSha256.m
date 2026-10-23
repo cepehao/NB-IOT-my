@@ -1,5 +1,6 @@
 function digest=fileSha256(file)
 %FILESHA256 Return a lowercase SHA-256 digest for a saved model artifact.
+%   SHA-256 файла (строчные hex) — для привязки модели/калибровки к результату.
 if ~isfile(file), error('nbiot:ml:PackageFile','Model artifact does not exist.'); end
 md=java.security.MessageDigest.getInstance('SHA-256');
 fid=fopen(file,'rb');

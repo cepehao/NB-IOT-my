@@ -1,5 +1,6 @@
 function ledger=loadVariant2BudgetLedger(path,createIfMissing)
 %LOADVARIANT2BUDGETLEDGER Read or initialize the shared Stage 2/Stage 3 budget.
+%   Учёт вычислительного бюджета серий. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<2, createIfMissing=false; end
 if ~(ischar(path)||(isstring(path)&&isscalar(path)))|| ...
         isempty(char(path))||~(islogical(createIfMissing)&&isscalar(createIfMissing))

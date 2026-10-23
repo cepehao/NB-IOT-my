@@ -1,6 +1,8 @@
 function rows=windowDiagnostics(cfg,packets,attempts,truthEvents,observedEvents, ...
     receptionEvents,actualTick,windowKeys)
 %WINDOWDIAGNOSTICS Derive outcome-only diagnostics for already closed windows.
+%   Диагностика по окнам датасета из истины (обнаружения, коллизии, приём) — только для анализа,
+%   в признаки не входит (ТЗ §40).
 % This function consumes completed in-memory journals. It never calls a PHY,
 % changes simulator state, or supplies any value to the controller.
 validateInputs(cfg,actualTick,windowKeys);

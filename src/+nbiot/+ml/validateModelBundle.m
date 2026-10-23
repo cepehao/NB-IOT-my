@@ -1,5 +1,6 @@
 function bundle=validateModelBundle(bundleOrFile,schema)
 %VALIDATEMODELBUNDLE Check schema, transformations, model metadata and file hash.
+%   Проверка сохранённой ML-модели (bundle): схема признаков, преобразование, метаданные, хеш.
 canonical=currentSchema();
 if nargin<2||isempty(schema)
     schema=canonical;

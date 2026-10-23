@@ -1,5 +1,6 @@
 function report=verifyOptimization(referenceFile,candidateFile,reportBase)
 %VERIFYOPTIMIZATION Compare separate-process reference and candidate bundles.
+%   Сравнение эталонного и оптимизированного прогонов (совпадение результатов).
 if nargin<3, reportBase=fullfile(pwd,'optimization-comparison'); end
 if ~ischar(referenceFile) && ~isstring(referenceFile), error('nbiot:optimization:Input','Reference path must be text.'); end
 if ~ischar(candidateFile) && ~isstring(candidateFile), error('nbiot:optimization:Input','Candidate path must be text.'); end

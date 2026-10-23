@@ -1,5 +1,6 @@
 function report=checkEnvironment(runRoundtrip)
 % Run only on the target MATLAB PC. No waveform result is precomputed.
+%   Проверка среды: функции LTE Toolbox и PHY без канала (nbiot.phy.verifyRoundtrips).
 if nargin<1, runRoundtrip=false; end
 root=fileparts(fileparts(mfilename('fullpath'))); addpath(fullfile(root,'src'));
 names={'lteNPRACH','lteNPRACHInfo','lteNPRACHDetect','lteNPUSCH','lteNPUSCHIndices','lteNPUSCHDRS',...

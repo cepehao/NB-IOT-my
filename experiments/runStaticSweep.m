@@ -1,5 +1,6 @@
 function manifest=runStaticSweep(options)
 %RUNSTATICSWEEP Run or resume cases without replacing accepted result bundles.
+%   Серия прогонов Static по реализациям с возобновлением.
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(root); addpath(fullfile(root,'experiments')); setupProject();
 if nargin<1, options=struct(); end

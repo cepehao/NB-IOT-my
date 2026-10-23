@@ -1,11 +1,20 @@
 function k=summarizeKpi(cfg,packets,attempts,observed,truth,usage,actualTick,harqJournal,queueSamples)
-%SUMMARIZEKPI Retain explicit numerators, denominators and censored work.
+%SUMMARIZEKPI Итоговые KPI прогона (ТЗ §27) с явными числителями и знаменателями.
+%   Основные: raSuccessProbability = успешные RA / начатые попытки Msg1 (§27.1);
+%   deliveryProbability = доставленные (CRC OK) / созданные пакеты (§27.2);
+%   throughputBitsPerSecond = полезные биты доставленных пакетов / длительность (§27.3).
+%   Дополнительные: collisionAttemptProbability (доля попыток с совпавшим NInit), логические группы
+%   коллизий, capture, обнаруженные преамбулы, среднее/макс. число попыток, задержка (средняя и p95,
+%   только доставленные), BLER Msg3 и данных, занятость UL/DL/NPRACH, очереди BS и UE, HARQ.
+%   Вероятности с нулевым знаменателем — NaN. Баланс created = delivered + dropped + unfinished проверяется.
+%   «…Completed…»-варианты считают только завершённые объекты (без незавершённых к горизонту).
 k=struct('created',numel(packets),'delivered',0,'dropped',0,'unfinished',0);
 if ~isempty(packets)
     k.delivered=sum(strcmp({packets.status},'delivered')); k.dropped=sum(strcmp({packets.status},'dropped'));
     k.unfinished=sum(strcmp({packets.status},'unfinished'));
 end
 assert(k.created==k.delivered+k.dropped+k.unfinished,'nbiot:metrics:Balance','Packet balance broken.');
+% Попытки RA (Msg1): успех — получен Msg4 со своим идентификатором конкуренции.
 k.raStarted=numel(attempts); k.raSuccess=0; k.raFailed=0; k.raUnfinished=0; k.collidingAttempts=0;
 if ~isempty(attempts)
     k.raSuccess=sum(strcmp({attempts.status},'success')); k.raFailed=sum(strcmp({attempts.status},'failure'));
@@ -41,14 +50,17 @@ if ~isempty(packets)&&isfield(packets,'attemptCount')
         k.maxRaAttemptsPerPacket=max(attemptCounts);
     end
 end
+% Throughput по уникальным доставленным пакетам; повторы HARQ не увеличивают его повторно.
 k.deliveredPayloadBits=k.delivered*cfg.traffic.packetBytes*8;
 k.durationSeconds=actualTick*cfg.simulation.tickSeconds;
 k.throughputBitsPerSecond=ratio(k.deliveredPayloadBits,k.durationSeconds);
+% Задержка доставки = тик доставки на BS − тик создания пакета (мс).
 delays=[];
 for p=packets
     if strcmp(p.status,'delivered'), delays(end+1)=double(p.deliveredTick)-double(p.createdTick); end %#ok<AGROW>
 end
 k.delayCount=numel(delays); k.meanDelayTicks=mean(delays); k.p95DelayTicks=percentile(delays,.95);
+% BLER по журналу BS: доля ошибок CRC среди завершённых декодирований (повторы HARQ — отдельные).
 k.msg3Decoded=0; k.msg3CrcFailures=0; k.dataDecoded=0; k.dataCrcFailures=0;
 decodes=observed(strcmp({observed.kind},'phy_decode'));
 for e=reshape(decodes,1,[])
@@ -78,6 +90,7 @@ k.meanRaAttempts=ratio(k.raStarted,k.created);
 k.deliveredFraction=k.deliveryProbability;
 k.meanDelaySeconds=k.meanDelayTicks*cfg.simulation.tickSeconds;
 k.p95DelaySeconds=k.p95DelayTicks*cfg.simulation.tickSeconds;
+% Занятость NPRACH: полоса 45 кГц (12 тонов × 3,75 кГц) в тиках фактических передач Msg1.
 nprach=false(2*n,12);
 for e=reshape(truth(strcmp({truth.kind},'transmission')),1,[])
     f=e.fields;
@@ -111,6 +124,7 @@ end
 function v=maximum(x)
 if isempty(x), v=NaN; else, v=max(x); end
 end
+% Логическая группа коллизии — пара (возможность, NInit), выбранная двумя и более UE.
 function count=countLogicalCollisionGroups(attempts)
 count=NaN;
 if isempty(attempts)
@@ -126,6 +140,7 @@ groupSizes=accumarray(groups,1);
 count=sum(groupSizes>1);
 end
 function value=ratio(a,b), if b==0, value=NaN; else, value=a/b; end, end
+% Перцентиль с линейной интерполяцией между порядковыми статистиками.
 function value=percentile(x,p)
 if isempty(x), value=NaN; return; end
 x=sort(x); r=1+(numel(x)-1)*p; a=floor(r); b=ceil(r); value=x(a)+(r-a)*(x(b)-x(a));

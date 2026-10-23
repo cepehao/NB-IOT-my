@@ -1,4 +1,8 @@
 function decode=receive(cfg,rx,g)
+%RECEIVE Декодирование кандидата поиска NPDCCH на UE (ТЗ §19).
+%   G — только публичный кандидат: подкадры, RNTI, ожидаемый формат. По каждому подкадру — приём
+%   (dlReceiveGrid) и lteNPDCCHDecode; затем lteDCIDecode снимает CRC и возвращает RNTI.
+%   CRC считается пройденным, если RNTI совпал с ожидаемым и формат DCI подходит.
 nbiot.phy.requireToolbox({'lteNPDCCHDecode','lteDCIDecode','lteDLChannelEstimate'});
 % Search-space input carries no payload assignment, grant ID or UE identity.
 g.startTick=min(g.ticks); [enb,chs]=nbiot.phy.dlConfig(cfg,g,true); dstate=[];

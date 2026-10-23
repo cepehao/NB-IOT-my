@@ -1,5 +1,7 @@
 function report=verifyRoundtrips()
-% Actual waveform acceptance, invoked explicitly on a licensed MATLAB PC.
+%VERIFYROUNDTRIPS Проверка PHY без канала: NPUSCH (с задержкой 11 отсчётов), NPDCCH, NPDSCH, UCI.
+%   Передача → приём должна вернуть те же биты с CRC OK (ТЗ §33, §39). Вызывается из
+%   examples/checkEnvironment; бросает nbiot:phy:Acceptance при сбое.
 cfg=nbiot.config.defaultConfig(); cfg.simulation.durationTicks=512;
 calendar=nbiot.scheduler.ResourceCalendar(cfg); scheduler=nbiot.scheduler.Scheduler(cfg,calendar);
 ul=scheduler.uplink('Data','DT',0,256,100,1,0);

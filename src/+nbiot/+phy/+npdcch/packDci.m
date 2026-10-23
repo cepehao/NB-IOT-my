@@ -1,5 +1,8 @@
 function bits=packDci(dci)
-% TS36.212 6.4.3: N0 and normal N1 have 23 bits, MSB first.
+%PACKDCI Упаковывает поля DCI в 23 бита, старший бит первым (TS 36.212 §6.4.3.1–6.4.3.2).
+%   N0 (UL grant): флаг 0, поднесущие 6, NRU 3, задержка 2, MCS 4, RV 1, повторы 3, NDI 1, повторы DCI 2.
+%   N1 (DL grant): флаг 1, NPDCCH order 1, задержка 3, NSF 3, MCS 4, повторы 4, NDI 1, ресурс ACK 4,
+%   повторы DCI 2. N1 с order=1 — команда на NPRACH (повторы, поднесущая, остальное единицы).
 if strcmp(dci.format,'N0')
     fields={'subcarrierIndication','resourceAssignment','schedulingDelay','mcs','rv','repetitionNumber','ndi','dciRepetitions'};
     widths=[6 3 2 4 1 3 1 2]; bits=int8(0);

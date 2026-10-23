@@ -1,5 +1,6 @@
 function loaded=loadComparisonSummary(folder)
 %LOADCOMPARISONSUMMARY Load saved three-method comparison tables for display.
+%   Загрузка таблиц сравнения трёх методов для отображения (ТЗ §46.9 п.11–12).
 if isstring(folder)&&isscalar(folder), folder=char(folder); end
 if ~ischar(folder)||size(folder,1)~=1||isempty(strtrim(folder))||~isfolder(folder)
     error('nbiot:ui:ComparisonFolder','Choose a folder with a saved comparison summary.');

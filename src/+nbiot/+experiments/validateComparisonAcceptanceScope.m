@@ -1,5 +1,6 @@
 function validateComparisonAcceptanceScope(scope,configs)
 %VALIDATECOMPARISONACCEPTANCESCOPE Check every Adaptive sweep config up front.
+%   Предварительная проверка конфигураций серии сравнения. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if ~isstruct(scope)||~isscalar(scope)||~iscell(configs)||isempty(configs)
     reject('A model scope and nonempty cell array of configurations are required.');
 end

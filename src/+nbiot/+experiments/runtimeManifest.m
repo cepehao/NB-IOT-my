@@ -1,5 +1,6 @@
 function metadata=runtimeManifest(cfg,options)
 %RUNTIMEMANIFEST Registered computational identities, independent of docs.
+%   Описание вычислительной среды и версий кода для результата. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if nargin<2, options=struct(); end
 % Hooks other than the explicitly registered runner have no identity contract.
 rejectUnknownHooks(options,{'runner','runExperimentFcn'});

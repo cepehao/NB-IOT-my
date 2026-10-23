@@ -1,5 +1,6 @@
 function ids=availableRealizationIds(registryFile,role,candidates)
 %AVAILABLEREALIZATIONIDS Return candidate IDs not reserved or previously used.
+%   Свободные номера реализаций из реестра. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 lockCleanup=nbiot.experiments.acquireRealizationRegistryLock(registryFile); %#ok<NASGU>
 registry=readRegistry(registryFile);
 role=char(string(role));

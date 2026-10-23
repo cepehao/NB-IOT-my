@@ -1,5 +1,6 @@
 function loaded=loadKpiCsvFiles(filePaths)
 %LOADKPICSVFILES Read one or more saved KPI tables for display/comparison.
+%   Чтение сохранённых таблиц KPI для просмотра и сравнения в GUI.
 if ischar(filePaths) || isstring(filePaths)
     filePaths=cellstr(filePaths);
 end

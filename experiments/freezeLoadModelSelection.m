@@ -1,5 +1,6 @@
 function freeze=freezeLoadModelSelection(options)
 %FREEZELOADMODELSELECTION Freeze the validation winner without opening test labels.
+%   Фиксация выбора лучшей модели по validation, не открывая test (ТЗ §21).
 try
     freeze=buildFreeze(options);
 catch exception

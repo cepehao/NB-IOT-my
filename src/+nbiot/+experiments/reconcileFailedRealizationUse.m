@@ -1,5 +1,6 @@
 function reconcileFailedRealizationUse(registryFile,role,ids,recoverySource,evidenceManifestSha256,reason)
 %RECONCILEFAILEDREALIZATIONUSE Mark a validated, fully recovered run complete.
+%   Исправление записи реестра для восстановленного прогона. [инфраструктура v4: приёмка/внешние запуски, не требование ТЗ]
 if ~ischar(recoverySource)||isempty(strtrim(recoverySource))||...
         ~ischar(reason)||isempty(strtrim(reason))||...
         ~ischar(evidenceManifestSha256)||isempty(regexp(evidenceManifestSha256,'^[0-9a-f]{64}$','once'))

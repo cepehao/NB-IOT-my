@@ -1,4 +1,5 @@
 % Open the application with a small, strong-link demo preset.
+%   Скрипт: открыть GUI с демо-настройками (1 UE, сильный канал).
 % Does not start a simulation. Press the Run button yourself.
 meetingRoot=fileparts(mfilename('fullpath'));
 cd(meetingRoot); setupProject();
