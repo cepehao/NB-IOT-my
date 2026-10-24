@@ -34,6 +34,7 @@ results = runtests('tests');                       % тесты (долго)
 | Файл | Зачем |
 |---|---|
 | `docs/SIMULATOR_GUIDE.md` | Гайд по ядру и всем файлам |
+| `docs/DATASET_GUIDE.md` | Как написать свой сценарий и собрать датасет |
 | `docs/TZ.md` | ТЗ (исходник — `docs/TZ_original.pdf`) |
 | `docs/ROADMAP.md` | Этапы доработки |
 | `docs/PROGRESS.md` | Текущий статус |

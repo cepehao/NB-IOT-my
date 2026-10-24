@@ -178,6 +178,7 @@ defaultConfig ─► validateConfig ─► buildScenario (UE, канал, тра
 | `closeWindow.m` | Строка датасета за окно 500 мс: признаки + target | Формирование датасета в ходе прогона |
 | `windowDiagnostics.m` | Диагностика окон по истине (коллизии, приём) | Анализ, не признаки |
 | `buildManifest.m` | Роль реализации: train / validation / test (70/15/15 по номеру) | Разбиение по реализациям без утечки |
+| `collectDataset.m` | Прогоняет список конфигураций и склеивает окна в `dataset.csv` (+ `runs.csv`, параллельно по желанию) | Сбор датасета по своему сценарию — см. `docs/DATASET_GUIDE.md` |
 
 ### `+metrics/` — KPI (ТЗ §27)
 
@@ -218,6 +219,7 @@ defaultConfig ─► validateConfig ─► buildScenario (UE, канал, тра
 | `examples/runBaseline.m` | Базовый прогон 1000 UE с сохранением | Пример полноценного сценария |
 | `examples/checkEnvironment.m` | Проверка LTE Toolbox и PHY без канала | Диагностика установки |
 | `examples/calibrateNprach.m` | Калибровка порога детектора NPRACH | Нужна при смене конфигурации NPRACH или детектора |
+| `examples/collectDatasetExample.m` | Пример сценария: сетка параметров → датасет | Шаблон для своих сценариев |
 
 ---
 
@@ -236,6 +238,9 @@ defaultConfig ─► validateConfig ─► buildScenario (UE, канал, тра
 | `controllerLog`, `controllerPolicy`, `controllerModel`, `runtimeAction` | Решения контроллера и описание оценщика |
 
 ## 5. Как связаны ядро и модели из Python
+
+Как написать сценарий и собрать датасет — **`docs/DATASET_GUIDE.md`**.
+
 
 1. Прогоны ядра → `saveResult` → `*_observations.csv` (признаки) и `*_targets.csv` (target `meanRaUe`)
    с ключами `realizationId, windowId`; роль реализации — `*_split.csv`.
