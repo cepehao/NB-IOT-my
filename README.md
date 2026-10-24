@@ -10,6 +10,9 @@ MATLAB-скриптов: моделируют сценарии, считают K
 в Python и подключаются к ядру как функция-оценщик. GUI-приложение — отдельное направление.
 Код основан на прототипе NB-IOT-4 v4.0.0 (`docs/DECISIONS.md`, ADR-004, ADR-006, ADR-007).
 
+> **Впервые здесь?** Не знаете MATLAB или NB-IoT — начните с **[docs/DATASET_GUIDE.md](docs/DATASET_GUIDE.md)**:
+> там с нуля — что моделируем, минимум MATLAB, первый запуск и свой сценарий шаг за шагом.
+
 ## Требования
 
 MATLAB R2025b, LTE Toolbox. Для параллельных серий — Parallel Computing Toolbox.
@@ -34,7 +37,7 @@ results = runtests('tests');                       % тесты (долго)
 | Файл | Зачем |
 |---|---|
 | `docs/SIMULATOR_GUIDE.md` | Гайд по ядру и всем файлам |
-| `docs/DATASET_GUIDE.md` | Как написать свой сценарий и собрать датасет |
+| `docs/DATASET_GUIDE.md` | С нуля: что моделируем, основы MATLAB, свой сценарий, датасет (для новичков) |
 | `docs/TZ.md` | ТЗ (исходник — `docs/TZ_original.pdf`) |
 | `docs/ROADMAP.md` | Этапы доработки |
 | `docs/PROGRESS.md` | Текущий статус |
