@@ -19,15 +19,7 @@ classdef TestEmptyDiagnosticsExport < matlab.unittest.TestCase
             t.verifyEqual(height(result.dataset.observations),0);
             t.verifyEqual(height(result.dataset.targets),0);
             t.verifyEqual(height(result.dataset.diagnostics),0);
-            caseKey='empty_diagnostics';
-            caseFolder=fullfile(folder,caseKey);
-            metadata=struct('caseKey',caseKey, ...
-                'configSha256',nbiot.results.configSha256(cfg), ...
-                'sourceSha256',repmat('a',1,64), ...
-                'calibrationSha256',repmat('c',1,64), ...
-                'environment',result.environment);
-
-            destination=nbiot.results.saveResult(result,caseFolder,metadata);
+            destination=nbiot.results.saveResult(result,folder);
             t.verifyTrue(isfile(destination));
             loaded=load(destination,'datasetDiagnostics');
             t.verifyEqual(height(loaded.datasetDiagnostics),0);
@@ -39,19 +31,13 @@ classdef TestEmptyDiagnosticsExport < matlab.unittest.TestCase
                     'logical');
             end
 
-            marker=jsondecode(fileread(fullfile(caseFolder,'case-complete.json')));
-            diagnosticAt=find(endsWith(string({marker.tables.file}), ...
-                '_diagnostics.csv'),1);
-            t.verifyFalse(isempty(diagnosticAt));
-            if ~isempty(diagnosticAt)
-                csvPath=fullfile(caseFolder,char(string( ...
-                    marker.tables(diagnosticAt).file)));
-                imported=readtable(csvPath,'VariableNamingRule','preserve', ...
-                    'TextType','string');
-                t.verifyEqual(height(imported),0);
-                t.verifyEqual(imported.Properties.VariableNames, ...
-                    loaded.datasetDiagnostics.Properties.VariableNames);
-            end
+            % CSV диагностики окон пишется и при нуле окон, со всеми столбцами.
+            csvPath=fullfile(folder,'static-v1_n1_r0002_diagnostics.csv');
+            t.verifyTrue(isfile(csvPath));
+            imported=readtable(csvPath,'VariableNamingRule','preserve','TextType','string');
+            t.verifyEqual(height(imported),0);
+            t.verifyEqual(imported.Properties.VariableNames, ...
+                loaded.datasetDiagnostics.Properties.VariableNames);
         end
     end
 end

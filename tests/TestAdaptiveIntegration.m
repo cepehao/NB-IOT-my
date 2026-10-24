@@ -1,16 +1,16 @@
 classdef TestAdaptiveIntegration < matlab.unittest.TestCase
     methods (Test)
-        function adaptiveModeRequiresAnExplicitCompatibleModel(t)
+        function adaptiveModeRequiresAnEstimator(t)
             cfg=smallAdaptiveConfig('Adaptive-P');
-            t.verifyError(@() nbiot.NBIoTSimulator(cfg,[],localDevelopment()), ...
-                'nbiot:controller:ModelRequired');
+            t.verifyError(@() nbiot.NBIoTSimulator(cfg,[]), ...
+                'nbiot:controller:EstimatorRequired');
         end
 
         function closedWindowPredictionIsAppliedAndRecorded(t)
             cfg=smallAdaptiveConfig('Adaptive-P');
             options=developmentController(4);
             options.policy=struct('maximumLoad',123);
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment(),options);
+            simulator=nbiot.NBIoTSimulator(cfg,[],options);
             simulator.run();
             result=simulator.result();
 
@@ -38,8 +38,8 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
             t.verifyTrue(result.controllerLog(2).applied);
             t.verifyEqual(result.controllerLog(2).appliedAccessProbability,0.5);
             t.verifyEqual(result.config.policy.accessProbability,1);
-            t.verifyEqual(result.controllerModel.status,'development');
-            t.verifyEqual(result.controllerModel.admissionStatus,'development-only');
+            t.verifyEqual(result.controllerModel.status,'supplied');
+            t.verifyEqual(result.controllerModel.description,'constant test estimator');
             t.verifyEqual(result.controllerLogSchemaVersion,1);
             t.verifyEqual(result.controllerPolicy.maximumLoad,123);
 
@@ -55,7 +55,7 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
 
         function adaptiveResourceModeChangesOnlyTheFutureShare(t)
             cfg=smallAdaptiveConfig('Adaptive-RA/DT');
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment(),developmentController(8));
+            simulator=nbiot.NBIoTSimulator(cfg,[],developmentController(8));
             simulator.run();
             result=simulator.result();
 
@@ -70,7 +70,7 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
 
         function invalidPredictionLeavesTheCurrentActionInPlace(t)
             cfg=smallAdaptiveConfig('Adaptive-P');
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment(),developmentController(NaN));
+            simulator=nbiot.NBIoTSimulator(cfg,[],developmentController(NaN));
             simulator.run();
             result=simulator.result();
 
@@ -81,17 +81,6 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
             t.verifyEqual(result.controllerLog(2).reason,'invalid-estimate');
             t.verifyEqual(result.runtimeAction.accessProbability,1);
             t.verifyEqual(result.kpiSummary.controller.configurationSwitches,0);
-        end
-
-        function externalAdaptiveRequiresPersistedAcceptanceBeforeConstruction(t)
-            cfg=smallAdaptiveConfig('Adaptive-P');
-            execution=struct('profile','external-machine','role','final-comparison', ...
-                'maxUE',2,'maxCaseSeconds',300,'maxSuiteSeconds',900);
-            options=developmentController(4);
-            options.allowDevelopmentModel=false;
-
-            t.verifyError(@() nbiot.NBIoTSimulator(cfg,[],execution,options), ...
-                'nbiot:ml:ModelAcceptance');
         end
     end
 end
@@ -105,24 +94,13 @@ cfg.policy.name=method;
 cfg.policy.windowTicks=500;
 cfg.dataset.windowTicks=500;
 root=fileparts(fileparts(mfilename('fullpath')));
-cfg=nbiot.experiments.loadCalibration(cfg, ...
+cfg=nbiot.phy.nprach.loadCalibration(cfg, ...
     fullfile(root,'results','nprach-calibration.mat'));
 end
 
 function options=developmentController(prediction)
-schema=nbiot.dataset.featureSchema();
-featureNames=schema.observationNames(5:end);
-keyNames=schema.observationNames(1:4);
-featureCount=numel(featureNames);
-bundle=struct('formatVersion','load-model-bundle-v1', ...
-    'modelName','linearRegression','model',FixedRegressionPredictor(prediction), ...
-    'schemaVersion',schema.version,'featureNames',{featureNames}, ...
-    'keyNames',{keyNames},'targetName','meanRaUe', ...
-    'transform',struct('median',zeros(1,featureCount),'mean',zeros(1,featureCount), ...
-        'scale',ones(1,featureCount)), ...
-    'trainingIds',1,'validationIds',2,'testIds',3,'seed',1, ...
-    'status','development','dataKind','development-fixture');
-options=struct('model',bundle,'allowDevelopmentModel',true);
+%DEVELOPMENTCONTROLLER Оценщик нагрузки для тестов: всегда возвращает PREDICTION.
+options=struct('estimator',@(features) prediction,'description','constant test estimator');
 end
 
 function assertCompleted(result)

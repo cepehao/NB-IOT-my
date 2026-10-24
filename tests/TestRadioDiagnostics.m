@@ -280,7 +280,7 @@ classdef TestRadioDiagnostics < matlab.unittest.TestCase
 
         function shortPhysicalRunAddsDiagnosticsWithoutChangingExistingKpis(t)
             cfg=shortRadioConfig();
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+            simulator=nbiot.NBIoTSimulator(cfg,[]);
             simulator.run();
             result=simulator.result();
 
@@ -310,12 +310,12 @@ classdef TestRadioDiagnostics < matlab.unittest.TestCase
         function lifecycleJournalRecordsRequestedStopAndRuntimeFailure(t)
             cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;
             cfg.simulation.durationTicks=10; cfg.traffic.kind='none';
-            stopped=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+            stopped=nbiot.NBIoTSimulator(cfg,[]);
             stopped.stop('user-stop'); stoppedResult=stopped.result();
             t.verifyEqual(stoppedResult.status,'stopped');
             t.verifyTrue(any(strcmp({stoppedResult.lifecycleLog.kind},'stop_requested')));
 
-            failed=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+            failed=nbiot.NBIoTSimulator(cfg,[]);
             failed.run(); failedResult=failed.result();
             t.verifyEqual(failedResult.status,'failed');
             t.verifyTrue(any(strcmp({failedResult.lifecycleLog.kind},'simulation_failed')));
@@ -326,7 +326,7 @@ classdef TestRadioDiagnostics < matlab.unittest.TestCase
         function lifecycleJournalRecordsSuccessfulModelLoad(t)
             cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;
             cfg.policy.name='Adaptive-P';
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment(),developmentController(4));
+            simulator=nbiot.NBIoTSimulator(cfg,[],developmentController(4));
 
             result=simulator.result();
 
@@ -334,14 +334,14 @@ classdef TestRadioDiagnostics < matlab.unittest.TestCase
             t.verifyNotEmpty(at);
             if isempty(at), return; end
             t.verifyEqual(result.lifecycleLog(at).fields.method,'Adaptive-P');
-            t.verifyEqual(result.lifecycleLog(at).fields.modelMetadata.status,'development');
+            t.verifyEqual(result.lifecycleLog(at).fields.modelMetadata.status,'supplied');
         end
 
         function lifecycleStartAndCompletionAreNotRepeatedForRunSlices(t)
             cfg=shortRadioConfig();
             cfg.simulation.durationTicks=25;
             cfg.traffic.kind='none';
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+            simulator=nbiot.NBIoTSimulator(cfg,[]);
 
             simulator.run(5);
             simulator.run(10);
@@ -439,22 +439,11 @@ cfg.traffic.burstStartTick=0;
 cfg.traffic.burstDurationTicks=1;
 cfg.policy.name='Static';
 root=fileparts(fileparts(mfilename('fullpath')));
-cfg=nbiot.experiments.loadCalibration(cfg, ...
+cfg=nbiot.phy.nprach.loadCalibration(cfg, ...
     fullfile(root,'results','nprach-calibration.mat'));
 end
 
 function options=developmentController(prediction)
-schema=nbiot.dataset.featureSchema();
-featureNames=schema.observationNames(5:end);
-keyNames=schema.observationNames(1:4);
-featureCount=numel(featureNames);
-bundle=struct('formatVersion','load-model-bundle-v1', ...
-    'modelName','linearRegression','model',FixedRegressionPredictor(prediction), ...
-    'schemaVersion',schema.version,'featureNames',{featureNames}, ...
-    'keyNames',{keyNames},'targetName','meanRaUe', ...
-    'transform',struct('median',zeros(1,featureCount),'mean',zeros(1,featureCount), ...
-        'scale',ones(1,featureCount)), ...
-    'trainingIds',1,'validationIds',2,'testIds',3,'seed',1, ...
-    'status','development','dataKind','development-fixture');
-options=struct('model',bundle,'allowDevelopmentModel',true);
+%DEVELOPMENTCONTROLLER Оценщик нагрузки для тестов: всегда возвращает PREDICTION.
+options=struct('estimator',@(features) prediction,'description','constant test estimator');
 end

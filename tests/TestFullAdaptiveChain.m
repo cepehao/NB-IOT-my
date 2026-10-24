@@ -3,7 +3,7 @@ classdef TestFullAdaptiveChain < matlab.unittest.TestCase
         function oneUeDeliversPacketAcrossAdaptiveDecisionAndNextWindow(t)
             cfg=smallAdaptiveConfig();
             options=developmentController(4);
-            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment(),options);
+            simulator=nbiot.NBIoTSimulator(cfg,[],options);
             simulator.run();
             result=simulator.result();
 
@@ -70,24 +70,13 @@ cfg.policy.name='Adaptive-P';
 cfg.policy.windowTicks=500;
 cfg.dataset.windowTicks=500;
 root=fileparts(fileparts(mfilename('fullpath')));
-cfg=nbiot.experiments.loadCalibration(cfg, ...
+cfg=nbiot.phy.nprach.loadCalibration(cfg, ...
     fullfile(root,'results','nprach-calibration.mat'));
 end
 
 function options=developmentController(prediction)
-schema=nbiot.dataset.featureSchema();
-featureNames=schema.observationNames(5:end);
-keyNames=schema.observationNames(1:4);
-featureCount=numel(featureNames);
-bundle=struct('formatVersion','load-model-bundle-v1', ...
-    'modelName','linearRegression','model',FixedRegressionPredictor(prediction), ...
-    'schemaVersion',schema.version,'featureNames',{featureNames}, ...
-    'keyNames',{keyNames},'targetName','meanRaUe', ...
-    'transform',struct('median',zeros(1,featureCount),'mean',zeros(1,featureCount), ...
-        'scale',ones(1,featureCount)), ...
-    'trainingIds',1,'validationIds',2,'testIds',3,'seed',1, ...
-    'status','development','dataKind','development-fixture');
-options=struct('model',bundle,'allowDevelopmentModel',true);
+%DEVELOPMENTCONTROLLER Оценщик нагрузки для тестов: всегда возвращает PREDICTION.
+options=struct('estimator',@(features) prediction,'description','constant test estimator');
 end
 
 function removeFolder(folder)

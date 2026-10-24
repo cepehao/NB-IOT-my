@@ -1,15 +1,14 @@
 function report=calibrateNprach(cfg,outputFile,options)
-% Expensive offline calibration: 20k fit windows plus fresh 20k validations.
-%   Калибровка порога детектора NPRACH по целевой вероятности ложной тревоги на окнах только с шумом;
-%   результат — results/nprach-calibration.mat (обязателен для запуска).
+%CALIBRATENPRACH Калибровка порога детектора NPRACH (долгий расчёт: 20 000 окон подбора + проверка).
+%   Порог подбирается по целевой вероятности ложной тревоги 5e-4 на окнах только с шумом, затем
+%   проверяется на новых реализациях (95 %-ная верхняя граница P_FA <= 1e-3).
+%   Результат — results/nprach-calibration.mat (обязателен для запуска симулятора). Перекалибровка
+%   нужна при смене конфигурации NPRACH или алгоритма детектора (nbiot.phy.nprach.receiverRevision).
+%   OPTIONS: fitRealizationId (4000), validationRealizationIds (4005:4008), maxSeconds (Inf).
 if nargin<1, cfg=nbiot.config.defaultConfig(); end
 if nargin<2, outputFile=fullfile(cfg.logging.outputFolder,'nprach-calibration.mat'); end
 if nargin<3, options=struct(); end
-if ~isfield(options,'execution'), options.execution=struct(); end
-execution=nbiot.experiments.validateExecutionBudget(cfg,options.execution);
-if ~strcmp(execution.profile,'external-machine')
-    error('nbiot:experiments:ExecutionBudget','Full NPRACH calibration belongs on the external machine.');
-end
+if ~isfield(options,'maxSeconds'), options.maxSeconds=Inf; end
 if ~isfield(options,'fitRealizationId'), options.fitRealizationId=4000; end
 if ~isfield(options,'validationRealizationIds'), options.validationRealizationIds=4005:4008; end
 validateattributes(options.fitRealizationId,{'numeric'},{'scalar','integer','nonnegative'});
@@ -18,15 +17,14 @@ assert(numel(unique([options.fitRealizationId options.validationRealizationIds])
     'nbiot:phy:Calibration','Fit and validation realization IDs must be distinct.');
 thresholdFloor=.005; cfg.phy.nprachThreshold=thresholdFloor;
 n=20000; pfa=0.0005; clockStart=tic;
-sourceManifest=optimizationSourceManifest(fileparts(fileparts(mfilename('fullpath'))));
-fit=measure(cfg,options.fitRealizationId,n,clockStart,execution.maxCaseSeconds); sorted=sort(fit);
+fit=measure(cfg,options.fitRealizationId,n,clockStart,options.maxSeconds); sorted=sort(fit);
 % The measured maximum includes only candidates passing the calibrated
 % full-sequence match, so false-alarm calibration covers the actual detector.
 threshold=max(thresholdFloor,min(1,sorted(ceil((1-pfa)*n))+eps(sorted(ceil((1-pfa)*n)))));
 history=struct('realizationId',{},'threshold',{},'falseAlarms',{},'interval95',{},'accepted',{});
 for attempt=1:numel(options.validationRealizationIds)
     id=options.validationRealizationIds(attempt);
-    maxima=measure(cfg,id,n,clockStart,execution.maxCaseSeconds); falseAlarms=sum(maxima>=threshold);
+    maxima=measure(cfg,id,n,clockStart,options.maxSeconds); falseAlarms=sum(maxima>=threshold);
     if falseAlarms==0, lo=0; else, lo=betaincinv(.025,falseAlarms,n-falseAlarms+1); end
     if falseAlarms==n, hi=1; else, hi=betaincinv(.975,falseAlarms+1,n-falseAlarms); end
     accepted=hi<=.001;
@@ -47,7 +45,6 @@ report.profile=struct('version',cfg.profileVersion,'cellId',cfg.phy.cellId,...
     'sampleRateHz',cfg.phy.sampleRateHz,'fractionalFilterLength',cfg.channel.fractionalFilterLength,...
     'receiverRevision',nbiot.phy.nprach.receiverRevision(),'cfoLimitHz',cfg.channel.cfoLimitHz);
 report.noiseFitMaxima=fit; report.noiseValidationMaxima=maxima;
-report.configSha256=nbiot.results.configSha256(cfg); report.sourceManifest=sourceManifest;
 report.elapsedSeconds=toc(clockStart);
 folder=fileparts(outputFile); if ~isempty(folder) && ~exist(folder,'dir'), mkdir(folder); end
 save(outputFile,'report');
@@ -60,7 +57,7 @@ first=8*1920-16; count=numel(bank{1}.waveform)+128;
 maxima=zeros(n,1);
 for k=1:n
     if toc(clockStart)>=maxSeconds
-        error('nbiot:experiments:ExecutionTimeout','Calibration wall-time budget exhausted.');
+        error('nbiot:phy:CalibrationTimeout','Calibration time limit options.maxSeconds exhausted.');
     end
     stream=sources.stream('noise',0,0,k);
     w=complex(randn(stream,count,1),randn(stream,count,1))/sqrt(2);

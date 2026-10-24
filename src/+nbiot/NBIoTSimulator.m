@@ -60,15 +60,6 @@ classdef NBIoTSimulator < handle
         truth
         % Диагностика приёма для анализа PHY (компоненты сигнала, перекрытия, оценки задержки/CFO).
         radioReceptionDiagnostics
-        % Кэш живой радиодиагностики для GUI; не входит в результат и чекпоинт.
-        liveRadioAccumulator = []
-        liveRadioTruthCursor = 0
-        liveRadioObservedCursor = 0
-        liveRadioReceptionCursor = 0
-        liveRadioRefreshBusy = false
-        liveRadioLastSummary = struct('asOfTick',0,'status','pending', ...
-            'summary',struct('available',false,'actualTick',0,'lastEventTick',NaN), ...
-            'perUe',struct([]))
         % Журнал жизненного цикла: вызовы run/step, остановки, загрузка модели (не физика).
         lifecycleLog
         % Журнал HARQ по транспортным блокам данных: scheduled / emitted / decoded / terminal.
@@ -101,28 +92,20 @@ classdef NBIoTSimulator < handle
         elapsedSeconds = 0
         stopRequested = false
         resultCache = []
-        % Бюджет реального времени расчёта (инфраструктура v4; по умолчанию без ограничения).
-        executionBudget
-        executionClock = []
-        executionElapsedOffset = 0
-        executionBudgetWarningIssued = false
     end
     methods
         %NBIOTSIMULATOR Создаёт симулятор: проверяет cfg, строит сценарий и все модули.
         %   CFG — конфигурация; SCENARIO — готовая внешняя реализация (пусто → строится по seed);
-        %   EXECUTION — бюджет времени (инфраструктура); CONTROLLEROPTIONS — модель/политика контроллера.
-        function obj=NBIoTSimulator(cfg,scenario,execution,controllerOptions)
+        %   CONTROLLEROPTIONS — для Adaptive-*: оценщик нагрузки и политика
+        %   (см. nbiot.controller.prepareRuntime). Для Static не задаётся.
+        function obj=NBIoTSimulator(cfg,scenario,controllerOptions)
             if nargin<1, cfg=nbiot.config.defaultConfig(); end
-            if nargin<3, execution=struct(); end
-            if nargin<4, controllerOptions=struct(); end
-            obj.executionBudget=nbiot.experiments.validateExecutionBudget(cfg,execution);
-            obj.executionClock=tic;
+            if nargin<3, controllerOptions=struct(); end
             obj.cfg=nbiot.config.validateConfig(cfg);
             obj.lifecycleLog=nbiot.results.EventLog();
             obj.lifecycleLog.append(0,'simulation_initialized', ...
                 struct('profileVersion',obj.cfg.profileVersion));
-            obj.controllerRuntime=nbiot.controller.prepareRuntime( ...
-                obj.cfg,obj.executionBudget,controllerOptions);
+            obj.controllerRuntime=nbiot.controller.prepareRuntime(obj.cfg,controllerOptions);
             if obj.controllerRuntime.enabled
                 obj.lifecycleLog.append(0,'model_loaded',struct( ...
                     'method',obj.controllerRuntime.method, ...
@@ -141,7 +124,6 @@ classdef NBIoTSimulator < handle
             % Сценарий строится один раз и одинаков для Static/Adaptive при равных seed и realizationId (ТЗ §63).
             if nargin<2 || isempty(scenario), scenario=nbiot.scenario.buildScenario(cfg,obj.sources); end
             obj.validateScenario(scenario); obj.scenario=scenario;
-            obj.checkExecutionDeadline();
             obj.devices=nbiot.devices.DeviceStore(cfg.simulation.numUE);
             obj.packets=nbiot.traffic.PacketStore(cfg); obj.contexts=nbiot.ra.RaContextStore();
             obj.calendar=nbiot.scheduler.ResourceCalendar(cfg);
@@ -153,7 +135,6 @@ classdef NBIoTSimulator < handle
             obj.harqJournal=nbiot.results.EventLog();
             % NPRACH резервируется заранее на весь горизонт: период 80 мс, старт 8 мс (ADR-005).
             obj.occasions=obj.scheduler.reserveNprach();
-            obj.checkExecutionDeadline();
             obj.tokens=containers.Map('KeyType','char','ValueType','logical');
         end
         %RUN Выполняет шаги до тика UNTILTICK включительно (по умолчанию — до горизонта).
@@ -180,11 +161,7 @@ classdef NBIoTSimulator < handle
                 elseif obj.nextTick>obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon';
                 else, obj.status='partial'; end
             catch exception
-                if strcmp(exception.identifier,'nbiot:experiments:ExecutionTimeout')
-                    obj.status='stopped'; obj.stopReason='execution-budget';
-                else
-                    obj.status='failed'; obj.stopReason='exception';
-                end
+                obj.status='failed'; obj.stopReason='exception';
                 obj.errorInfo=struct('identifier',exception.identifier,'message',exception.message,'stack',exception.stack);
             end
             if any(strcmp(obj.status,{'completed','stopped','failed'}))
@@ -245,7 +222,6 @@ classdef NBIoTSimulator < handle
         %   6) новые передачи: служебный DL, NPRACH, назначения, мониторинг NPDCCH; 7) статистика очередей.
         function step(obj)
             if any(strcmp(obj.status,{'completed','stopped','failed'})) || obj.stopRequested, return; end
-            obj.checkExecutionDeadline();
             obj.resultCache=[];
             now=obj.nextTick; obj.currentTick=now; obj.monitorQueued=false;
             % На тике 0 у контроллера ещё нет закрытого окна: фиксируем «решения нет».
@@ -308,7 +284,6 @@ classdef NBIoTSimulator < handle
                 obj.channel.discardBefore(max(0,(now-128)*1920));
             end
             obj.nextTick=now+1;
-            obj.checkExecutionDeadline();
             if now==obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon'; end
         end
         %STOP Запрашивает остановку; текущий тик завершается, состояние можно сохранить.
@@ -335,35 +310,6 @@ classdef NBIoTSimulator < handle
                 'controllerLog',obj.controllerLog,'controllerMethod',obj.controllerRuntime.method, ...
                 'controllerDiagnosticTargets',diagnosticTargets, ...
                 'tickSeconds',obj.cfg.simulation.tickSeconds);
-        end
-        %LIVERADIODIAGNOSTICS Инкрементальная радиодиагностика для GUI (только отображение).
-        function live=liveRadioDiagnostics(obj)
-            % This cache is presentation-only and is deliberately absent from
-            % checkpoint state and scientific result export.
-            % Timer callbacks can re-enter a snapshot while it is refreshing.
-            % Keep journal reads, accumulator update and cursor commits atomic.
-            if obj.liveRadioRefreshBusy
-                live=obj.liveRadioLastSummary;
-                return;
-            end
-            obj.liveRadioRefreshBusy=true;
-            refreshGuard=onCleanup(@() obj.finishLiveRadioRefresh()); %#ok<NASGU>
-            if isempty(obj.liveRadioAccumulator)
-                obj.liveRadioAccumulator= ...
-                    nbiot.metrics.RadioDiagnosticsAccumulator( ...
-                    0:obj.cfg.ra.numSubcarriers-1);
-            end
-            [truthDelta,nextTruthCursor]=obj.truth.since(obj.liveRadioTruthCursor);
-            [observedDelta,nextObservedCursor]=obj.observed.since( ...
-                obj.liveRadioObservedCursor);
-            [receptionDelta,nextReceptionCursor]=obj.radioReceptionDiagnostics.since( ...
-                obj.liveRadioReceptionCursor);
-            live=obj.liveRadioAccumulator.update(truthDelta,observedDelta, ...
-                receptionDelta,obj.currentTick);
-            obj.liveRadioTruthCursor=nextTruthCursor;
-            obj.liveRadioObservedCursor=nextObservedCursor;
-            obj.liveRadioReceptionCursor=nextReceptionCursor;
-            obj.liveRadioLastSummary=live;
         end
         %OBSERVEDEVENTSSINCE События журнала BS после индекса AFTERINDEX (для журнала GUI).
         function [events,nextIndex]=observedEventsSince(obj,afterIndex)
@@ -448,125 +394,8 @@ classdef NBIoTSimulator < handle
             result.profiling=struct('elapsedSeconds',obj.elapsedSeconds,'matlabValidation','pending');
             obj.resultCache=result;
         end
-        %EXPORTCHECKPOINTSTATE Полное состояние для продолжения расчёта в другом процессе.
-        %   Только между шагами и не для завершённого расчёта.
-        function state=exportCheckpointState(obj)
-            if any(strcmp(obj.status,{'completed','stopped','failed','running'}))
-                error('nbiot:experiments:CheckpointState', ...
-                    'Checkpoint export requires a nonterminal simulator at a completed step boundary.');
-            end
-            state=struct('schemaVersion',1,'cfg',obj.cfg,'scenario',obj.scenario, ...
-                'currentTick',obj.currentTick,'status',obj.status, ...
-                'stopReason',obj.stopReason,'errorInfo',obj.errorInfo, ...
-                'runtimeAction',obj.runtimeAction,'devices',obj.devices, ...
-                'packets',obj.packets,'contexts',obj.contexts, ...
-                'calendar',obj.calendar,'scheduler',obj.scheduler, ...
-                'channel',obj.channel,'attempts',obj.attempts, ...
-                'sources',obj.sources,'receiveQueue',obj.receiveQueue, ...
-                'observed',obj.observed,'truth',obj.truth, ...
-                'radioReceptionDiagnostics',obj.radioReceptionDiagnostics, ...
-                'lifecycleLog',obj.lifecycleLog,'harqJournal',obj.harqJournal, ...
-                'queueSamples',obj.queueSamples, ...
-                'controllerRuntime',obj.controllerRuntime, ...
-                'controllerLog',obj.controllerLog, ...
-                'controllerLatestEstimate',obj.controllerLatestEstimate, ...
-                'occasions',obj.occasions,'nextTick',obj.nextTick, ...
-                'arrivalCursor',obj.arrivalCursor,'monitorQueued',obj.monitorQueued, ...
-                'tokens',obj.tokens,'observationRows',{obj.observationRows}, ...
-                'targetRows',{obj.targetRows},'raIntegral',obj.raIntegral, ...
-                'activeIntegral',obj.activeIntegral,'queueIntegral',obj.queueIntegral, ...
-                'observedCrcCounters',obj.observedCrcCounters, ...
-                'elapsedSeconds',obj.elapsedSeconds, ...
-                'stopRequested',obj.stopRequested, ...
-                'executionBudgetWarningIssued',obj.executionBudgetWarningIssued, ...
-                'executionElapsedSeconds',obj.executionElapsedOffset+toc(obj.executionClock));
-        end
-    end
-    methods (Static)
-        %FROMCHECKPOINTSTATE Восстанавливает симулятор из EXPORTCHECKPOINTSTATE.
-        function obj=fromCheckpointState(state,execution)
-            if nargin<2, execution=struct(); end
-            required={'schemaVersion','cfg','scenario','currentTick','status', ...
-                'stopReason','errorInfo','runtimeAction','devices','packets','contexts', ...
-                'calendar','scheduler','channel','attempts','sources','receiveQueue', ...
-                'observed','truth','radioReceptionDiagnostics','lifecycleLog', ...
-                'harqJournal','queueSamples','controllerRuntime','controllerLog', ...
-                'controllerLatestEstimate','occasions','nextTick','arrivalCursor', ...
-                'monitorQueued','tokens','observationRows','targetRows','raIntegral', ...
-                'activeIntegral','queueIntegral','observedCrcCounters','elapsedSeconds', ...
-                'stopRequested','executionBudgetWarningIssued','executionElapsedSeconds'};
-            if ~isstruct(state)||~isscalar(state)||~all(isfield(state,required))|| ...
-                    state.schemaVersion~=1||~ismember(state.status,{'ready','partial'})|| ...
-                    state.nextTick~=state.currentTick+1 && ...
-                    ~(strcmp(state.status,'ready')&&state.currentTick==0&&state.nextTick==0)
-                error('nbiot:experiments:CheckpointState', ...
-                    'Checkpoint state is incomplete, unsupported or not at a step boundary.');
-            end
-            obj=nbiot.NBIoTSimulator(state.cfg,state.scenario,execution);
-            obj.cfg=state.cfg; obj.scenario=state.scenario;
-            obj.currentTick=state.currentTick; obj.status=state.status;
-            obj.stopReason=state.stopReason; obj.errorInfo=state.errorInfo;
-            obj.runtimeAction=state.runtimeAction; obj.devices=state.devices;
-            obj.packets=state.packets; obj.contexts=state.contexts;
-            obj.calendar=state.calendar; obj.scheduler=state.scheduler;
-            obj.channel=state.channel; obj.attempts=state.attempts;
-            obj.sources=state.sources; obj.receiveQueue=state.receiveQueue;
-            obj.observed=state.observed; obj.truth=state.truth;
-            obj.radioReceptionDiagnostics=state.radioReceptionDiagnostics;
-            obj.lifecycleLog=state.lifecycleLog; obj.harqJournal=state.harqJournal;
-            obj.queueSamples=state.queueSamples;
-            obj.controllerRuntime=state.controllerRuntime;
-            obj.controllerLog=state.controllerLog;
-            obj.controllerLatestEstimate=state.controllerLatestEstimate;
-            obj.occasions=state.occasions; obj.nextTick=state.nextTick;
-            obj.arrivalCursor=state.arrivalCursor; obj.monitorQueued=state.monitorQueued;
-            obj.tokens=state.tokens; obj.observationRows=state.observationRows;
-            obj.targetRows=state.targetRows; obj.raIntegral=state.raIntegral;
-            obj.activeIntegral=state.activeIntegral; obj.queueIntegral=state.queueIntegral;
-            obj.observedCrcCounters=state.observedCrcCounters;
-            obj.elapsedSeconds=state.elapsedSeconds;
-            obj.stopRequested=state.stopRequested;
-            obj.executionBudgetWarningIssued=state.executionBudgetWarningIssued;
-            obj.executionElapsedOffset=state.executionElapsedSeconds;
-            obj.executionClock=tic; obj.resultCache=[];
-            if ~obj.scheduler.referencesCalendar(obj.calendar)|| ...
-                    ~obj.channel.referencesSources(obj.sources)
-                error('nbiot:experiments:CheckpointGraph', ...
-                    'Checkpoint did not preserve scheduler/calendar or channel/source links.');
-            end
-            obj.lifecycleLog.append(obj.currentTick,'checkpoint_restored', ...
-                struct('schemaVersion',state.schemaVersion));
-        end
     end
     methods (Access=private)
-        function finishLiveRadioRefresh(obj)
-            obj.liveRadioRefreshBusy=false;
-        end
-        %CHECKEXECUTIONDEADLINE Контроль бюджета реального времени (инфраструктура экспериментов v4).
-        function checkExecutionDeadline(obj)
-            if isempty(obj.executionClock), obj.executionClock=tic; end
-            elapsed=obj.executionElapsedOffset+toc(obj.executionClock);
-            if elapsed>=obj.executionBudget.maxCaseSeconds
-                if strcmp(obj.executionBudget.timePolicy,'finish-current')
-                    if ~obj.executionBudgetWarningIssued
-                        obj.executionBudgetWarningIssued=true;
-                        obj.lifecycleLog.append(double(obj.currentTick), ...
-                            'execution_budget_warning',struct( ...
-                            'elapsedSeconds',double(elapsed), ...
-                            'warningThresholdSeconds', ...
-                            double(obj.executionBudget.maxCaseSeconds), ...
-                            'timePolicy',obj.executionBudget.timePolicy));
-                        warning('nbiot:experiments:ExecutionBudgetWarning', ...
-                            ['The case exceeded its warning threshold; finish-current ' ...
-                            'continues the active case.']);
-                    end
-                    return;
-                end
-                obj.stop('execution-budget');
-                error('nbiot:experiments:ExecutionTimeout', ...
-                    'The declared case wall-time budget was exhausted.');
-            end
-        end
         %ADDARRIVALS Ставит в очереди UE пакеты, созданные к текущему тику (ТЗ §11).
         %   При переполнении очереди пакет отбрасывается (drop-tail), это фиксируется в truth.
         function addArrivals(obj)
@@ -1120,7 +949,8 @@ classdef NBIoTSimulator < handle
             obs=nbiot.NBIoTSimulator.rowsTable({obs},nbiot.dataset.featureSchema().observationNames);
         end
         %PROCESSCONTROLLERWINDOW Решение контроллера на границе окна (ТЗ §23, период 500 мс):
-        %   признаки закрытого окна → ML-оценка нагрузки → выбор действия из допустимого множества
+        %   признаки закрытого окна → оценка нагрузки (оценщик, напр. ML-модель) → выбор действия
+        %   из допустимого множества
         %   → применение → запись в журнал решений (время, оценка, конфигурация, переключение).
         function processControllerWindow(obj,observation,decisionTick)
             state=struct('tick',double(decisionTick), ...
@@ -1137,8 +967,8 @@ classdef NBIoTSimulator < handle
             estimateError=[];
             if decisionTick>0&&decisionTick<state.durationTicks
                 try
-                    estimate=nbiot.ml.predictLoad(obj.controllerRuntime.bundle,observation, ...
-                        struct('minimum',0,'maximum',obj.controllerRuntime.policy.maximumLoad));
+                    estimate=nbiot.controller.estimateLoad(obj.controllerRuntime.estimator, ...
+                        observation,obj.controllerRuntime.policy.maximumLoad);
                 catch exception
                     estimate=struct('valid',false,'value',NaN, ...
                         'featureWindowEndTick',double(decisionTick),'reason','prediction-error');

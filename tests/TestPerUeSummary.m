@@ -54,11 +54,6 @@ classdef TestPerUeSummary < matlab.unittest.TestCase
             test.verifyEqual(result.kpiSummary.service.actualTick,10);
             test.verifyTrue(isnan(result.kpiSummary.service.probability));
             test.verifyTrue(istable(result.groupKpi));
-            summaryText=nbiot.ui.formatResultSummary(result);
-            test.verifyTrue(contains(summaryText,'service-outage-horizon-v1'));
-            test.verifyTrue(contains(summaryText,'H=10 ticks'));
-            test.verifyTrue(contains(summaryText,'unfinished UE=0'));
-            test.verifyTrue(contains(summaryText,'Group '));
 
             folder=tempname; mkdir(folder); test.addTeardown(@() removeFixture(folder));
             nbiot.results.saveResult(result,folder);

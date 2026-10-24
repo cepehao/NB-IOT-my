@@ -149,7 +149,7 @@ projectRoot=fileparts(fileparts(mfilename('fullpath')));
 cfg=nbiot.config.defaultConfig();
 cfg.simulation.numUE=1; cfg.simulation.durationTicks=1000;
 cfg.traffic.kind='none';
-cfg=nbiot.experiments.loadCalibration(cfg, ...
+cfg=nbiot.phy.nprach.loadCalibration(cfg, ...
     fullfile(projectRoot,'results','nprach-calibration.mat'));
-simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+simulator=nbiot.NBIoTSimulator(cfg,[]);
 end

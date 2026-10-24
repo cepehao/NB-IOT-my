@@ -1,7 +1,8 @@
 function root=setupProject()
-%SETUPPROJECT Add explicit project folders and the shared test fixture helpers.
-%   Добавляет на путь src, configs, examples, experiments и tests/helpers.
+%SETUPPROJECT Добавляет на путь MATLAB папки ядра симулятора.
+%   ROOT = setupProject() — src (пакет +nbiot), configs (готовые конфигурации и политика контроллера),
+%   examples (примеры запуска) и tests/helpers (общие фикстуры тестов). Возвращает корень проекта.
 root=fileparts(mfilename('fullpath'));
 addpath(fullfile(root,'src'),fullfile(root,'configs'),fullfile(root,'examples'), ...
-    fullfile(root,'experiments'),fullfile(root,'tests','helpers'));
+    fullfile(root,'tests','helpers'));
 end

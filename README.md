@@ -1,53 +1,44 @@
-# NB-IoT: интеллектуальная система анализа коллизий случайного доступа (проект 2510)
+# NB-IoT: ядро симулятора анализа коллизий случайного доступа (проект 2510)
 
-MATLAB-симулятор NB-IoT соты с физической WAVEFORM-моделью (LTE Toolbox), ML-оценкой нагрузки и
-адаптивным управлением (Adaptive-P, Adaptive-RA/DT) в сравнении со статической конфигурацией.
+MATLAB-симулятор соты NB-IoT с физической WAVEFORM-моделью радиоинтерфейса (LTE Toolbox): NPRACH,
+NPUSCH, NPDCCH/NPDSCH, полная процедура случайного доступа, передача данных с проверкой CRC,
+контроллер со стратегиями Static, Adaptive-P и Adaptive-RA/DT, KPI и датасет для обучения моделей.
 Заказчик: МИЭМ / ДЭИ.
 
-Код основан на прототипе NB-IOT-4 v4.0.0 (ADR-004 в `docs/DECISIONS.md`); его проектная документация —
-`docs/architecture.md`, `docs/model-profile.md`, `docs/metrics-contract.md` и др.
+Этот репозиторий — **только ядро симулятора**, без графического интерфейса. Его используют из
+MATLAB-скриптов: моделируют сценарии, считают KPI, выгружают датасет. Модели оценки нагрузки обучаются
+в Python и подключаются к ядру как функция-оценщик. GUI-приложение — отдельное направление.
+Код основан на прототипе NB-IOT-4 v4.0.0 (`docs/DECISIONS.md`, ADR-004, ADR-006, ADR-007).
 
-Файлы AI-агентов (CLAUDE.md, `.claude/`, `agent-config/`, `.mcp.json`, `tools/`, `docs/TOOLS.md`) в git не
-хранятся — см. `.gitignore`.
+## Требования
 
-## Запуск (MATLAB R2025b + LTE Toolbox, корень проекта)
+MATLAB R2025b, LTE Toolbox. Для параллельных серий — Parallel Computing Toolbox.
+
+## Запуск (корень проекта)
 
 ```matlab
-startupProject();          % пути
-startNBIoT('check');       % проверка установки и калибровки NPRACH
-r = runSingleUe();         % 1 устройство, 5 с модели: ожидается 1 доставленный пакет
-startNBIoT();              % GUI-демо
-results = runtests('tests');  % полный набор тестов (долго)
+startupProject();                                  % пути
+r = runSingleUe();                                 % проверка: 1 устройство, доставлен 1 пакет
+cfg = nbiot.config.defaultConfig();                % параметры (ТЗ §10, §13, §30)
+cfg = nbiot.phy.nprach.loadCalibration(cfg, fullfile(pwd,'results','nprach-calibration.mat'));
+result = nbiot.runExperiment(cfg);                 % один прогон Static
+nbiot.results.saveResult(result, fullfile(pwd,'results','run'));   % MAT + CSV
+results = runtests('tests');                       % тесты (долго)
 ```
 
-## Быстрый старт для команды
-
-1. Установить MATLAB с LTE Toolbox (+ Communications, Statistics and ML, Parallel Computing).
-2. Поставить MATLAB MCP Server и скиллы в проект: `bash setup-matlab-tools.sh` (подробно — `docs/TOOLS.md`).
-3. Один раз: `cd ~/Разное/Work/NB-IOT-my && bash install-agent-config.sh` — копирует субагентов
-   и проектный скилл из `agent-config/` в `.claude/`.
-4. `claude` — агент прочитает `CLAUDE.md` автоматически.
-5. Первая фраза агенту: «Прочитай PROGRESS и продолжай по ROADMAP».
+Подробно — **[docs/SIMULATOR_GUIDE.md](docs/SIMULATOR_GUIDE.md)**: что делает каждый файл, как устроен
+прогон, что лежит в результате, как подключить модель.
 
 ## Документы
 
 | Файл | Зачем |
 |---|---|
-| `CLAUDE.md` | правила для агентов, рабочий цикл, распределение ролей |
-| `docs/TZ.md` | ТЗ в markdown (исходник — `docs/TZ_original.pdf`) |
-| `docs/TOOLS.md` | тулбоксы, MCP, скиллы, субагенты — что, зачем, как |
-| `docs/ROADMAP.md` | этапы доработки v4 до ТЗ |
-| `docs/PROGRESS.md` | текущий статус (обновляется каждую сессию) |
-| `docs/DECISIONS.md` | архитектурные решения, не заданные в ТЗ |
-| `agent-config/agents/` → `.claude/agents/` | субагенты: simulator-engineer, data-scientist, researcher, verifier |
-| `agent-config/skills/nbiot-project-rules/` → `.claude/skills/` | конвенции кода проекта |
-| `install-agent-config.sh` | копирует `agent-config/` в `.claude/` |
+| `docs/SIMULATOR_GUIDE.md` | Гайд по ядру и всем файлам |
+| `docs/TZ.md` | ТЗ (исходник — `docs/TZ_original.pdf`) |
+| `docs/ROADMAP.md` | Этапы доработки |
+| `docs/PROGRESS.md` | Текущий статус |
+| `docs/DECISIONS.md` | Решения, не заданные в ТЗ |
+| `docs/model-profile.md`, `docs/architecture.md`, `docs/metrics-contract.md` | Профиль модели, архитектура и определения KPI (из v4) |
 
-## Полезные фразы для управления агентами
-
-- «Продолжи с того места, где остановились» — агент читает PROGRESS.
-- «Используй simulator-engineer: реализуй CellLayout по ТЗ §10, тесты по §31».
-- «Отдай этап 1 на проверку verifier».
-- «Researcher, собери еженедельный отчёт за неделю N».
-- «Запиши решение в DECISIONS: …».
-- «Обнови PROGRESS и закоммить».
+Файлы AI-агентов (CLAUDE.md, `.claude/`, `agent-config/`, `.mcp.json`, `tools/`, `docs/TOOLS.md`) в git не
+хранятся — см. `.gitignore`. Установка MCP и скиллов для агентов — `bash setup-matlab-tools.sh`.

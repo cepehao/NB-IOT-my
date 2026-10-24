@@ -9,7 +9,7 @@ cfg.channel.cfoSigmaHz=0; cfg.channel.syncLimitSeconds=0;
 cfg.traffic.burstStartTick=0; cfg.traffic.burstDurationTicks=1;
 cfg.logging.outputFolder=fullfile(root,'results','single-ue');
 if nargin<1, calibrationFile=fullfile(root,'results','nprach-calibration.mat'); end
-checkEnvironment(false); cfg=nbiot.experiments.loadCalibration(cfg,calibrationFile);
+checkEnvironment(false); cfg=nbiot.phy.nprach.loadCalibration(cfg,calibrationFile);
 result=nbiot.runExperiment(cfg); nbiot.results.saveResult(result,cfg.logging.outputFolder);
 disp(result.kpiSummary);
 if strcmp(result.status,'failed'), error('nbiot:experiment:Failed','%s',result.error.message); end

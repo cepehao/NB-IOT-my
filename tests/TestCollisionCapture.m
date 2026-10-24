@@ -1,24 +1,6 @@
 classdef TestCollisionCapture < matlab.unittest.TestCase
-    % Small physical diagnostics; never a statistical acceptance campaign.
+    % Аналитические проверки геометрии, мощности/шума, ядра задержки и границ BACKOFF (ТЗ §31–32, §38).
     methods (Test)
-        function designCoversSixGroupsAndNearFar(t)
-            r=validateCollisionCapture(struct('designOnly',true));
-            t.verifyEqual(unique([r.conditions.group]),1:6);
-            for same=[false true]
-                chosen=r.conditions([r.conditions.samePreamble]==same & [r.conditions.group]~=2);
-                t.verifyTrue(all(ismember([0 6 12 20 30 40],[chosen.deltaDb])));
-            end
-            t.verifyEqual(r.options.repeats,10);
-            t.verifyEqual(r.successDefinition,'Decoded RAR, accepted CRC/protocol Msg3, matching CRC/protocol Msg4');
-        end
-        function largerCampaignIsRejected(t)
-            t.verifyError(@() validateCollisionCapture(struct('designOnly',true,'repeats',11)),...
-                'nbiot:collision:Scope');
-        end
-        function unsupportedConditionIsRejected(t)
-            t.verifyError(@() validateCollisionCapture(struct('designOnly',true,'conditionIds',999)),...
-                'nbiot:collision:Condition');
-        end
         function analyticalGeometryAndIndoorLoss(t)
             c=nbiot.config.defaultConfig(); c.simulation.numUE=200; c.traffic.kind='none';
             c.cell.radiusM=500; c.cell.minDistanceM=25; c.cell.bsHeightM=20;
@@ -86,66 +68,9 @@ classdef TestCollisionCapture < matlab.unittest.TestCase
             t.verifyEqual(sim.packets.packets.reason,'ra_limit');
             t.verifyEqual(sim.attempts(1).status,'failure');
         end
-        function physicalControlRequiresProtocolChain(t)
-            testRoot=tempname; mkdir(testRoot); cleanup=onCleanup(@() cleanupFolder(testRoot)); %#ok<NASGU>
-            folder=fullfile(testRoot,'output'); registryFile=isolatedRegistry(testRoot);
-            r=validateCollisionCapture(struct('outputFolder',folder,'repeats',1,...
-                'conditionIds',7,'runReceiverChecks',false,'runInterferenceReplay',false,...
-                'registryFile',registryFile,'manageRegistry',false));
-            t.verifyEqual(height(r.trials),1);
-            t.verifyEqual(r.trials.logicalColliders,0);
-            t.verifyLessThanOrEqual(r.trials.firstSuccess,2);
-            t.verifyEqual(r.trials.chainValidated,true);
-            t.verifyGreaterThanOrEqual(r.trials.chainCount,1);
-            t.verifyGreaterThanOrEqual(r.trials.raSuccess,1);
-            t.verifyTrue(isnan(r.trials.firstStrongSuccess));
-            t.verifyFalse(any(ismember(string(r.summary.event),["firstStrongSuccess","firstWeakSuccess"])));
-            t.verifyGreaterThanOrEqual(r.trials.raSuccess,r.trials.firstSuccess);
-            t.verifyTrue(isfile(fullfile(folder,'report.mat')));
-        end
-        function interferenceReplayCapturesCRCFailureAtDecodeTick(t)
-            testRoot=tempname; mkdir(testRoot); cleanup=onCleanup(@() cleanupFolder(testRoot)); %#ok<NASGU>
-            folder=fullfile(testRoot,'output'); registryFile=isolatedRegistry(testRoot);
-            r=validateCollisionCapture(struct('outputFolder',folder,'repeats',1,...
-                'conditionIds',7,'durationTicks',1500,'runReceiverChecks',false,...
-                'runInterferenceReplay',true,'registryFile',registryFile,'manageRegistry',false));
-            t.verifyEqual(height(r.interferenceReplay),8);
-            for delta=[0 40]
-                rows=r.interferenceReplay(r.interferenceReplay.deltaDb==delta,:);
-                t.verifyEqual(sort(string(rows.variant)),...
-                    ["desired-clean";"desired-noisy";"full-clean";"full-noisy"]);
-            end
-            equalPower=r.interferenceReplay(r.interferenceReplay.deltaDb==0,:);
-            fullEqual=equalPower(strcmp(equalPower.variant,'full-noisy'),:);
-            desiredEqual=equalPower(strcmp(equalPower.variant,'desired-noisy'),:);
-            t.verifyFalse(fullEqual.crcError);
-            t.verifyTrue(fullEqual.payloadMatchesActualTx);
-            t.verifyFalse(desiredEqual.crcError);
-            t.verifyTrue(desiredEqual.payloadMatchesActualTx);
-            nearFar=r.interferenceReplay(r.interferenceReplay.deltaDb==40,:);
-            fullNear=nearFar(strcmp(nearFar.variant,'full-noisy'),:);
-            desiredNear=nearFar(strcmp(nearFar.variant,'desired-noisy'),:);
-            t.verifyTrue(fullNear.crcError);
-            t.verifyFalse(desiredNear.crcError);
-            t.verifyTrue(desiredNear.payloadMatchesActualTx);
-        end
     end
 end
 function cleanupFolder(folder)
 if isfolder(folder), rmdir(folder,'s'); end
 end
 
-function registryFile=isolatedRegistry(folder)
-registryFile=fullfile(folder,'realization-registry.json');
-content=['{"schemaVersion":1,"validRange":[0,4095],',...
-    '"roles":["stage-2-collision-diagnostics","stage-2-receiver-diagnostics"],',...
-    '"reservations":[{"role":"test-holdout","range":[0,999],"source":"isolated test"},',...
-    '{"role":"test-unused","range":[1001,3999],"source":"isolated test"}],',...
-    '"assignments":[]}'];
-fid=fopen(registryFile,'w','n','UTF-8');
-assert(fid>=0,'nbiot:test:Registry','Could not create isolated test registry.');
-cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
-bytes=unicode2native(content,'UTF-8');
-assert(fwrite(fid,bytes,'uint8')==numel(bytes),...
-    'nbiot:test:Registry','Could not write isolated test registry.');
-end

@@ -79,7 +79,7 @@ classdef TestNprachInterference < matlab.unittest.TestCase
         function oldPresenceCalibrationIsRejected(t)
             cfg=nbiot.config.defaultConfig();
             root=fileparts(fileparts(mfilename('fullpath')));
-            t.verifyError(@() nbiot.experiments.loadCalibration(cfg,...
+            t.verifyError(@() nbiot.phy.nprach.loadCalibration(cfg,...
                 fullfile(root,'results','nprach-calibration-legacy-v1.mat')),'nbiot:phy:Calibration');
         end
     end
