@@ -18,19 +18,29 @@ classdef RaContextStore < handle
     methods
         %CREATE Новый контекст для обнаруженной преамбулы NINIT на возможности OCCASIONID.
         function id=create(obj,nInit,occasionId,deadlineTick,delaySeconds)
+            % Номер нового контекста — следующий по порядку.
             id=numel(obj.entries)+1;
+            % Пул временных C-RNTI ограничен (255 + номер < 65536) — при исчерпании ошибка.
             if id>65000, error('nbiot:ra:RntiExhausted','Temporary RNTI pool exhausted.'); end
+            % Новый контекст: Temp C-RNTI = 255 + номер; преамбула и возможность; состояние RAR_PENDING (готовить RAR);
+            % дедлайн окна RAR; token и sequence появятся из Msg3; данные — с 1-го фрагмента, NDI 0, 1-я передача HARQ;
+            % ждёт назначения (pending); оценка задержки NPRACH — для timing advance.
             e=struct('id',id,'rnti',255+id,'nInit',nInit,'occasionId',occasionId, ...
                 'state','RAR_PENDING','deadlineTick',deadlineTick,'token',uint64(0), ...
                 'sequence',0,'nextFragment',1,'ndi',0,'harqTry',1,'softBuffer',[], ...
                 'pending',true,'schedule',[],'receiptAttempts',0,'lastProgressTick',0, ...
                 'dataComplete',false,'delaySeconds',delaySeconds);
+            % Добавляем контекст в конец массива.
             obj.entries(end+1)=e;
         end
         %GET/SET Чтение и запись контекста по номеру; FINDRNTI — номер контекста по C-RNTI (0, если нет).
+        % Возвращает контекст по номеру.
         function e=get(obj,id), e=obj.entries(id); end
+        % Записывает изменённый контекст.
         function set(obj,id,e), obj.entries(id)=e; end
+        % Поиск контекста по C-RNTI:
         function id=findRnti(obj,rnti)
+            % первый контекст с этим RNTI; если нет — 0.
             id=find([obj.entries.rnti]==rnti,1); if isempty(id), id=0; end
         end
     end

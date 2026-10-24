@@ -6,21 +6,27 @@ function cfg=loadCalibration(cfg,path)
 %   на окнах только с шумом. Порог действителен только для той же конфигурации NPRACH и той же версии
 %   детектора (nbiot.phy.nprach.receiverRevision) — иначе ошибка nbiot:phy:Calibration.
 %   Выход: cfg.phy.nprachThreshold — порог (0, 1]; cfg.calibrationReport — отчёт калибровки.
+% Файл калибровки должен существовать.
 if ~isfile(path)
     error('nbiot:phy:Calibration','Missing %s. Run examples/calibrateNprach.m.',path);
 end
+% Загружаем отчёт калибровки.
 data=load(path,'report');
+% Отчёт должен быть и пройти проверку на шуме (accepted).
 if ~isfield(data,'report') || ~isfield(data.report,'accepted') || ~data.report.accepted
     error('nbiot:phy:Calibration','Calibration is absent or did not pass noise validation.');
 end
+% Короткое имя отчёта.
 r=data.report;
 % Профиль, для которого порог действителен: конфигурация NPRACH, канал и версия детектора.
 required=struct('version',cfg.profileVersion,'cellId',cfg.phy.cellId,'format',cfg.ra.format, ...
     'periodTicks',cfg.ra.periodTicks,'numSubcarriers',cfg.ra.numSubcarriers,'repetitions',cfg.ra.repetitions, ...
     'sampleRateHz',cfg.simulation.sampleRateHz,'fractionalFilterLength',cfg.channel.fractionalFilterLength,...
     'receiverRevision',nbiot.phy.nprach.receiverRevision(),'cfoLimitHz',cfg.channel.cfoLimitHz);
+% Профиль и сетка CFO калибровки должны совпадать с текущей конфигурацией.
 if ~isfield(r,'profile') || ~isequal(r.profile,required) || ~isequal(r.cfoGridHz,cfg.phy.nprachCfoGridHz)
     error('nbiot:phy:Calibration','Calibration profile or CFO grid differs; recalibrate.');
 end
+% Записываем порог и отчёт калибровки в конфигурацию.
 cfg.phy.nprachThreshold=r.threshold; cfg.calibrationReport=r;
 end

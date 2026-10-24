@@ -1,7 +1,9 @@
 function requireToolbox(names)
 %REQUIRETOOLBOX Проверяет наличие функций LTE Toolbox NAMES (по умолчанию — все, что использует PHY).
 %   Ошибка nbiot:phy:MissingToolbox с именем отсутствующей функции (CLAUDE.md правило 3).
+% Без аргументов —
 if nargin<1
+    % проверяем все функции LTE Toolbox, которые использует PHY.
     names={'lteNPRACH','lteNPRACHInfo','lteNPRACHDetect','lteNPUSCH','lteNPUSCHIndices',...
         'lteNPUSCHDRS','lteNPUSCHDRSIndices','lteNULSCH','lteNULSCHDecode','lteNPUSCHDecode',...
         'lteSCFDMAModulate','lteSCFDMADemodulate','lteULChannelEstimateNPUSCH',...
@@ -11,7 +13,9 @@ if nargin<1
         'lteExtractResources','lteBCH','lteNPBCH','lteNPBCHIndices',...
         'lteNPSS','lteNPSSIndices','lteNSSS','lteNSSSIndices'};
 end
+% Для каждой функции:
 for k=1:numel(names)
+    % функции нет на пути MATLAB —
     if isempty(which(names{k}))
         error('nbiot:phy:MissingToolbox','Required LTE Toolbox API %s is unavailable. Run examples/checkEnvironment on the MATLAB PC.',names{k});
     end
